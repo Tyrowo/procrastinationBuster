@@ -15,6 +15,7 @@ There are currently 6 theoretical components to the extension necessary for impl
 
 other potential features for after alpha implementation-
  1. recording the number of times that you enter the website into your browser
+ 2. add multiple websites for busting
 
 But that should be it. Simple, easy, to the point.
 Hopefully by writing out those six tasks that it needs to be able to perform I can work on each soon and get them done quickly.
