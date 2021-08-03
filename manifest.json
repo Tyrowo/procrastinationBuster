@@ -1,35 +1,86 @@
 {
-    "name": "The Procrastination Buster",
-    "description": "Catch yourself wasting time, so you can knock it off.",
+    "manifest_version": 3
+    "name": "Tyro's Procrastination Buster",
+    "short_name": "P Buster",
     "version": "1.0",
-    "manifest_version": 3,
+    "version_name": "alpha build",
     "action": {
         "default_popup": "userPrefs.html",
         "default_icon": "tyFavicon.png",
         "default_title": "check blocked site",
-        //browser action? need to create a badge
-    },
-    //need to create userPrefs.html
-    //the goal is to use action to create a user submission form
-    //that will allow you to change your preferences of blocked site and frequency
-    // "default_locale":  not going to do a locales directory so I think I don't need this?
-    "description": 'Intercept url requests to that site that you waste too much time on.'
+    }, //actions seem to be what clicking your icon button does
+    //we're going to use this to view and edit our user preferences
+    //most need an action to create a popup, which requires an html file for how it looks
+    //then we also need javascript file for what it does
+    "description": "Catch yourself wasting time, so you can knock it off.",
     "icons": {
         "16": "tyFavicon.png"
-        //need to do "48" and "128" one day
     },
-    /*
-    "background": {
-        "service_worker": "background.js"
-    },
-    don't need a javascript page just yet, maybe we won't ever
-    */
-    //that's all the required and recommendeds
-    //below are the optionals
+    //3 sizes, 16, 48, and 128. 16 is most important
+    //but should work on creating the others too
     "author": "Tyler Crews",
-}
-
-/* notes - declarative network request
-to add an option to intercept the website
-request after like the fifth visit of the day?
-
+    "background": {
+        // Required
+        "service_worker": "serviceBackground.js"
+    },
+    //if you want a script to be running in the background
+    //you need this to run any code anywhere
+    //i wasn't sure if i'd need it since i'd be working with declarative network requests
+    //but i think if you want your thing to do anything afterward it's necessary
+    "content_scripts": [
+        { ...
+        }
+    ],
+    //***
+    "declarative_net_request": ...,
+    //*** important
+    //why is this greened when there's a page
+    //this is the most important one
+    "event_rules": [
+        { ...
+        }
+    ],
+    //*** this one's important
+    //provides mechanism to add rules that intercept, block, or modify web requests
+    //uses declarativeWebRequest
+    //does not require permission to read page from declarative content
+    //the rules are based on the content of the page though?
+    "incognito": "spanning",
+    "options_page": "options.html",
+    //allows users to customize behavior of extension with an options page
+    //!!!!!!!!!!!!!!! this one's important
+    //right clicking extension icon and selecting options allows access to this page
+    //uses html to create the options page
+    //ublock and RES have an options page to copy off of
+    //lots of checkboxes in these layouts, saving changes to file or from file at the bottom
+    //save options across devices with the storage.sync API, saving to chrome.storage
+    //options page allows either full page or embedded
+    //we want embedded since it'll just be a little popup instead of opening a new tab
+    //inserting a URL after options page opens it up into a new tab
+    //the feature below, options_ui will open an embedded popup instead
+    //so don't use this one, use below
+    "options_ui": {
+        "chrome_style": true,
+        "page": "options.html"
+        "open_in_tab": false
+    },
+    //very important!!!!!!!!
+    //use this one
+    //register the html file under options_ui
+    //embedding options should automatically determine its size based on the page content
+    //if content shape is based on window size you may need to provide fixed minimum dimensions
+    //but usually this won't be an issue
+    "permissions": [
+        "tabs",
+        "declarativeNetRequest",
+        "storage",
+    ],
+    //!!! important for every extension !!!
+    //this is where to declare permissions that are required for running the extension
+    //
+    // note - chrome.storage.sync and chrome.storage.local are Always shared between reg and incognito.
+    //make sure to use them for persisting your extensions settings
+    //
+    //
+    //chrome APIs that I don't want to do for now but may be cool to explore in the future: 
+    //omnibox, commands, tts &/ tts_engine
