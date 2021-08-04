@@ -1,35 +1,32 @@
 {
-    "name": "The Procrastination Buster",
-    "description": "Catch yourself wasting time, so you can knock it off.",
-    "version": "1.0",
     "manifest_version": 3,
+    "name": "Tyro's Procrastination Buster",
+    "short_name": "P Buster",
+    "version": "0.5",
+    "version_name": "pre-alpha build",
     "action": {
         "default_popup": "userPrefs.html",
         "default_icon": "tyFavicon.png",
-        "default_title": "check blocked site",
-        //browser action? need to create a badge
+        "default_title": "check blocked site"
     },
-    //need to create userPrefs.html
-    //the goal is to use action to create a user submission form
-    //that will allow you to change your preferences of blocked site and frequency
-    // "default_locale":  not going to do a locales directory so I think I don't need this?
-    "description": 'Intercept url requests to that site that you waste too much time on.'
+    "description": "Catch yourself wasting time, so you can knock it off.",
     "icons": {
         "16": "tyFavicon.png"
-        //need to do "48" and "128" one day
     },
-    /*
-    "background": {
-        "service_worker": "background.js"
-    },
-    don't need a javascript page just yet, maybe we won't ever
-    */
-    //that's all the required and recommendeds
-    //below are the optionals
     "author": "Tyler Crews",
+    "declarative_net_request": {
+        "rule_resources": [
+            {
+                "id": "antiRedditTest",
+                "enabled": true,
+                "path": "antiRedditTest.json"
+            }
+        ]
+    },
+    "incognito": "spanning",
+    "permissions": [
+        "tabs",
+        "declarativeNetRequest",
+        "storage"
+    ]
 }
-
-/* notes - declarative network request
-to add an option to intercept the website
-request after like the fifth visit of the day?
-
