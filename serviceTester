@@ -1,5 +1,7 @@
 /*
 
+//exploring some alarms stuff
+
 let minute = 1000 * 60 //ms in 1 min
 
 chrome.alarms.onAlarm.addListener(function (alarm) {
@@ -19,53 +21,6 @@ function createAlarm() {
 
 createAlarm;
 
-
-
-let lol = 'lol';
-
-chrome.webNavigation.onCompleted.addListener(
-    function(){
-        console.log('beep boop');
-        alert('beep boop');
-    },
-    { url: '*://*.google.com/*' });
-
-function turnOn() {
-    console.log('beep boop');
-    alert('beep boop');
-}
-
-//at least this works
-chrome.runtime.onInstalled.addListener(
-    function () {
-        alert('okay did this happen');
-        console.log('testing 1 2');
-    }
-)
-
-//this didn't work
-chrome.webNavigation.onCompleted.addListener(function (details) {
-    if (hasHostSuffix(details.url, 'google.com') {
-        alert('okay did this happen');
-        console.log('testing 1 2');
-    }
-});
-
-//or this
-chrome.webNavigation.onCompleted.addListener(function (details) {
-    if (hostContains(details.url, '.google') {
-        alert('okay did this happen');
-        console.log('testing 1 2');
-    }
-});
-
-
-chrome.webNavigation.onCompleted.addListener(function (details) {
-    alert('okay did this happen');
-    console.log('testing 1 2');
-}, { url: [{ hostContains: '.google' }] });
-
-
 function (details) {
     let target = details.url;
     if (target == 'https://www.google.com/') {
@@ -74,52 +29,87 @@ function (details) {
     console.log(target, 'lol')
 }
 
-async function deactivateRuleset(){
-    let disableRule = {
-        disableRulesetIds: "antiRedditTest"
-    };
-    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(disableRule);
-    return ourPromise;
-}
-
-async function activateRuleset(){
-    let enableRule = {
-        enableRulesetIds: "antiRedditTest"
-    };
-    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(enableRule);
-    return ourPromise;
-}
-
-
 */
 
-chrome.webNavigation.onCompleted.addListener(details => {
-    console.log('gotcha');
-    chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
-    console.log('hello pls help');
-    deactivateRuleset();
-}, {
-    url: [{ hostContains: '.google' },]
-});
 
-//for now we're going ot use onInstalled until we can 
 chrome.runtime.onInstalled.addListener(
     function () {
-        chrome.action.setBadgeBackgroundColor({ color: '#F00' }); //can add callback function if you want to cascade
-        chrome.action.setBadgeText({ text: 'active' });
+        //right now we don't do anything on installed
+        //eventually we need to pull up a new tab with our options
+
+        //have the user pick their website to block
+        //have the option to pin the extension to the toolbar
     });
-//tabID: myTabId is only for active tab, we don't want that
-//chrome.action.setBadgeText({});
-//this is to clear out the text whenever we want to do that
 
-//not sure if it's chrome.options or chrome.declarativeNetRequests.options
-//but we're in dnr so let's try that as a prefix first
+//you're allowed to visit website ony once, then this triggers and activates the ruleset
+chrome.webNavigation.onCompleted.addListener(details => {
+    console.log('heard.');
+    activateBadge();
+    console.log('you can visit reddit this once for the  next ${storage period of time}');
+    activateRuleset();
+    //here we've got to add two timers:
+    //timer to boot you out of the reddit tab after x time
+    let tabBooterTime = {
+        delayInMinutes: 1
+    };
+    chrome.alarms.create(name = 'too much time on tab', tabBooterTime);
+    console.log(`you'll be allowed on this website for 1 minutes`);
 
-//.UpdateRulesetOptions doesn't seem to be a thing
+    //then we need another alarm to turn the ruleset back off
+    let reactivationTime = {
+        delayInMinutes: 60 * 12 //sets alarm for 12 hours from activation
+    };
+    chrome.alarms.create(name = 'active ruleset timer', reactivationTime);
+    //timer to deactivate the ruleset
+    console.log('deactivation alarm set for 1 minute from now');
+}, {
+    url: [{ hostContains: '.reddit' },]
+});
+//end of visit function
+
+//now we have an active alarm that will go off 1 minute from now
+//so we need a listener to react to that alarm
+chrome.alarms.onAlarm.addListener(function (alarm) {
+    //we want to make sure we're getting the deactivate alarm and not the kick you out of the tab alarm
+    if (alarm.name = 'active ruleset timer') {
+        //with the alarm triggered then we want to deactivate the ruleset again
+        console.log('deactivating blocker');
+        //instead of just a console log maybe we give a notification here
+        deactivateBadge();
+        deactivateRuleset();
+    };
+
+    //here we can do the check for the boot out of tab alarm in the same function
+    if (alarm.name = 'too much time on tab') {
+
+        //highlight tab if it's not active
+        //notify that tab is being closed
+        //close out of tab
+    };
+});
+
+//here are our two functions to turn on a ruleset or turn off a ruleset
 async function deactivateRuleset() {
     let disableRule = {
         disableRulesetIds: ["antiRedditTest"]
     };
     let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(disableRule);
     return ourPromise;
+};
+
+async function activateRuleset() {
+    let enableRule = {
+        enableRulesetIds: ["antiRedditTest"]
+    };
+    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(enableRule);
+    return ourPromise;
+};
+
+//and here are two functions to turn on or off the badge
+function activateBadge() {
+    chrome.action.setBadgeBackgroundColor({ color: '#F00' }); //can add callback function if you want to cascade
+    chrome.action.setBadgeText({ text: 'active' });
+}
+function deactivateBadge() {
+    chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
 }
