@@ -1,0 +1,94 @@
+/*
+
+let minute = 1000 * 60 //ms in 1 min
+
+chrome.alarms.onAlarm.addListener(function (alarm) {
+    console.log('alarm triggered, hopefully toggled and alerted');
+    alert('Alarm triggered, hopefully toggled')
+    if (chrome.declarative_net_request.rule_resources.enabled = false)
+        chrome.declarative_net_request.rule_resources.enabled = true;
+    else chrome.declarative_net_request.rule_resources.enabled = false;
+});
+
+
+function createAlarm() {
+    chrome.alarms.create(toggler, {
+        periodInMinutes: 1
+    })
+};
+
+createAlarm;
+
+
+
+let lol = 'lol';
+
+chrome.webNavigation.onCompleted.addListener(
+    function(){
+        console.log('beep boop');
+        alert('beep boop');
+    },
+    { url: '*://*.google.com/*' });
+
+function turnOn() {
+    console.log('beep boop');
+    alert('beep boop');
+}
+
+//at least this works
+chrome.runtime.onInstalled.addListener(
+    function () {
+        alert('okay did this happen');
+        console.log('testing 1 2');
+    }
+)
+
+//this didn't work
+chrome.webNavigation.onCompleted.addListener(function (details) {
+    if (hasHostSuffix(details.url, 'google.com') {
+        alert('okay did this happen');
+        console.log('testing 1 2');
+    }
+});
+
+//or this
+chrome.webNavigation.onCompleted.addListener(function (details) {
+    if (hostContains(details.url, '.google') {
+        alert('okay did this happen');
+        console.log('testing 1 2');
+    }
+});
+
+
+chrome.webNavigation.onCompleted.addListener(function (details) {
+    alert('okay did this happen');
+    console.log('testing 1 2');
+}, { url: [{ hostContains: '.google' }] });
+
+
+function (details) {
+    let target = details.url;
+    if (target == 'https://www.google.com/') {
+        console.log('boom');
+    }
+    console.log(target, 'lol')
+}
+
+*/
+
+chrome.webNavigation.onCompleted.addListener(details => {
+    console.log('gotcha');
+    alert('hey there');
+}, {
+    url: [{ hostContains: '.google' },]
+});
+
+//for now we're going ot use onInstalled until we can 
+chrome.runtime.onInstalled.addListener(
+    function () {
+        chrome.action.setBadgeBackgroundColor({ color: '#F00' }); //can add callback function if you want to cascade
+        chrome.action.setBadgeText({ text: 'active' });
+    });
+//tabID: myTabId is only for active tab, we don't want that
+//chrome.browserAction.setBadgeText({});
+//this is to clear out the text whenever we want to do that
