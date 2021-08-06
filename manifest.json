@@ -2,18 +2,27 @@
     "manifest_version": 3,
     "name": "Tyro's Procrastination Buster",
     "short_name": "P Buster",
-    "version": "0.5",
+    "version": "0.51",
     "version_name": "pre-alpha build",
     "action": {
         "default_popup": "userPrefs.html",
-        "default_icon": "tyFavicon.png",
+        "default_icon": {
+            "16": "tyFav16.png",
+            "48": "tyFav48.png",
+            "128": "tyFav128.png"
+        },
         "default_title": "check blocked site"
     },
     "description": "Catch yourself wasting time, so you can knock it off.",
     "icons": {
-        "16": "tyFavicon.png"
+        "16": "tyFav16.png",
+        "48": "tyFav48.png",
+        "128": "tyFav128.png"
     },
     "author": "Tyler Crews",
+    "background": {
+        "service_worker": "serviceTester.js"
+    },
     "declarative_net_request": {
         "rule_resources": [
             {
@@ -27,6 +36,8 @@
     "permissions": [
         "tabs",
         "declarativeNetRequest",
-        "storage"
+        "storage",
+        "alarms",
+        "webNavigation"
     ]
 }
