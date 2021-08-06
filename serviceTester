@@ -74,11 +74,30 @@ function (details) {
     console.log(target, 'lol')
 }
 
+async function deactivateRuleset(){
+    let disableRule = {
+        disableRulesetIds: "antiRedditTest"
+    };
+    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(disableRule);
+    return ourPromise;
+}
+
+async function activateRuleset(){
+    let enableRule = {
+        enableRulesetIds: "antiRedditTest"
+    };
+    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(enableRule);
+    return ourPromise;
+}
+
+
 */
 
 chrome.webNavigation.onCompleted.addListener(details => {
     console.log('gotcha');
-    alert('hey there');
+    chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
+    console.log('hello pls help');
+    deactivateRuleset();
 }, {
     url: [{ hostContains: '.google' },]
 });
@@ -90,5 +109,17 @@ chrome.runtime.onInstalled.addListener(
         chrome.action.setBadgeText({ text: 'active' });
     });
 //tabID: myTabId is only for active tab, we don't want that
-//chrome.browserAction.setBadgeText({});
+//chrome.action.setBadgeText({});
 //this is to clear out the text whenever we want to do that
+
+//not sure if it's chrome.options or chrome.declarativeNetRequests.options
+//but we're in dnr so let's try that as a prefix first
+
+//.UpdateRulesetOptions doesn't seem to be a thing
+async function deactivateRuleset() {
+    let disableRule = {
+        disableRulesetIds: ["antiRedditTest"]
+    };
+    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(disableRule);
+    return ourPromise;
+}
