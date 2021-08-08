@@ -11,18 +11,6 @@ don't need any other sample code right now
 
 chrome.runtime.onInstalled.addListener(
     function () {
-        chrome.notifications.getPermissionLevel(function (level) {
-            console.log(level);
-        })
-        //checking for permission level, says permissions are granted
-        let testNotify = { type: 'basic', iconUrl: 'tyFav48.png', title: 'Notification Test', message: 'testing one, two' };
-        //Unchecked runtime.lastError: Some of the required properties are missing: type, iconUrl, title and message.
-        chrome.notifications.create('Test Notification', testNotify, function (notificationId) {
-            console.log('did this work');
-            console.log(notificationId);
-        });
-
-
         //right now we don't do anything on installed
         //eventually we need to pull up a new tab with our options
 
@@ -33,8 +21,24 @@ chrome.runtime.onInstalled.addListener(
 //you're allowed to visit website ony once, then this triggers and activates the ruleset
 chrome.webNavigation.onCompleted.addListener(details => {
 
-    console.log('did the notification show?')
+    //need to make sure that this only triggers once per navigation
+    console.log(details);
+    if (details.frameId === 0) return;
+
+    let testNotify2 = {
+        type: 'basic',
+        message: 'this is a notification please notify the user of something',
+        title: 'Notification Test 2',
+        iconUrl: './tyFav128.png',
+        priority: 1
+    };
+    //Unchecked runtime.lastError: Some of the required properties are missing: type, iconUrl, title and message.
+    chrome.notifications.create('Test Notification 2', testNotify2, function (notificationId) {
+        console.log('did this work? it should have a notification up now');
+        console.log(notificationId);
+    });
     console.log('heard.');
+    warningBadge();
     console.log('you can visit reddit this once for the  next ${storage period of time}');
     //here we've got to add two timers:
     //timer to boot you out of the reddit tab after x time
@@ -122,4 +126,10 @@ function activateBadge() {
 }
 function deactivateBadge() {
     chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
+}
+
+//and a function to start the badge saying that your time on the site is counting down
+function warningBadge() {
+    chrome.action.setBadgeBackgroundColor({ color: '#FF6700' });
+    chrome.action.setBadgeText({ text: 'allowed' });
 }
