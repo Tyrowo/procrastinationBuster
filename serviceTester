@@ -25,81 +25,71 @@ chrome.webNavigation.onCompleted.addListener(details => {
     console.log(details);
     if (details.frameId === 0) return;
 
-    let testNotify2 = {
-        type: 'basic',
-        message: 'this is a notification please notify the user of something',
-        title: 'Notification Test 2',
-        iconUrl: './tyFav128.png',
-        priority: 1
-    };
-    //Unchecked runtime.lastError: Some of the required properties are missing: type, iconUrl, title and message.
-    chrome.notifications.create('Test Notification 2', testNotify2, function (notificationId) {
-        console.log('did this work? it should have a notification up now');
-        console.log(notificationId);
-    });
-    console.log('heard.');
+    //need to clear notifications left over from the last cycle of banning
+    notifyClear('Access Restored');
+    //to create a notification we create a new member of our class and pass that into the notify function
+    let siteVisited = new NotificationClass('You have accessed a restricted site', 'You will be allowed [time] until you are kicked off of it.');
+    //we notify the user and initiate a warning badge
+    notifyUser(siteVisited);
     warningBadge();
-    console.log('you can visit reddit this once for the  next ${storage period of time}');
+    console.log('warning initiated, setting alarms');
+
     //here we've got to add two timers:
     //timer to boot you out of the reddit tab after x time
-    let tabBooterTime = {
-        delayInMinutes: 1
-    };
+    let tabBooterTime = { delayInMinutes: 1 };
     chrome.alarms.create(name = 'too much time on tab', tabBooterTime);
-    console.log(`you'll be allowed on this website for 1 minutes`);
-
     //then we need another alarm to turn the ruleset back off
-    let reactivationTime = {
-        delayInMinutes: 3 //sets alarm for 3 mins from activation
-    };
+    let reactivationTime = { delayInMinutes: 2 }; //sets alarm for 3 mins from activation
     chrome.alarms.create(name = 'active ruleset timer', reactivationTime);
     //timer to deactivate the ruleset
-    console.log('deactivation alarm set for 3 mins from now');
+    console.log('both alarms successfully set');
 }, {
     url: [{ hostContains: '.reddit' },]
 });
 //end of visit function
 
-//now we have an active alarm that will go off 1 minute from now
-//so we need a listener to react to that alarm
+//now we have two active alarms to listen for
 chrome.alarms.onAlarm.addListener(function (alarm) {
     console.log(alarm.name);
-    //we want to make sure we're getting the deactivate alarm and not the kick you out of the tab alarm
-    if (alarm.name === 'active ruleset timer') {
-        //with the alarm triggered then we want to deactivate the ruleset again
-        console.log('deactivating blocker');
-        //instead of just a console log maybe we give a notification here
-        deactivateBadge();
-        deactivateRuleset();
-    };
 
-    //here we can do the check for the boot out of tab alarm in the same function
+    //chech which alarm we're looking at
+
+    //the first alarm kicks us out of the tabs and initiates the blocker
     if (alarm.name === 'too much time on tab') {
-        console.log('alotted time on site is over. activating blocking ruleset');
+
+        //first clear out our old notification 
+        notifyClear('You have accessed a restricted site');
+        //now we make a new notification
+        let timeOver = new NotificationClass('Activating Blocker',
+            'Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in [blockTime - allowedTime]');
+        notifyUser(timeOver);
+        console.log('activating blocker');
         activateBadge();
         activateRuleset();
         //on this alarm activating we want to query whether we have any open tabs of the problem website
         let blockedUrl = { url: '*://*.reddit.com/*' }; //query url prop takes string or array of string 
         return chrome.tabs.query(blockedUrl) //this returns a promise with all the problem urls
             .then((tabs) => {
-                console.log(tabs, 'made it into the promise then', 'tabs with the blocked url will now be closed.');
                 if (!tabs.length) return; //exit if we don't have any tabs found from the query
                 let map = tabs.map(t => t.id); // this creates a list of ids
-                console.log('made it past the if statement', 'here are a list of your tab ids', map);
                 chrome.tabs.remove(map); //close the tabs found
                 console.log('tabs from map successfully closed');
             });
     };
-    //right now this function has an error removing the tabs:
-    //it may also be causing 
-    /*
-    Error in event handler: 
-    TypeError: Error in invocation of 
-        tabs.remove([integer|array] 
-            tabIds, optional function callback): 
-            
-            No matching signature.
-    */
+
+
+    //the second alarm deactivates the blocker
+    if (alarm.name === 'active ruleset timer') {
+        //with the alarm triggered then we want to deactivate the ruleset again
+        console.log('deactivating blocker');
+        //instead of just a console log maybe we give a notification here
+        deactivateBadge();
+        deactivateRuleset();
+        //now that the rules allow for use of the website again, we notify the user that they have access again
+        notifyClear('Activating Blocker'); //clear out the old notification first
+        let accessRestored = new NotificationClass('Access Restored', `Your time limit has expired, and you've regained access to your restricted site.`);
+        notifyUser(accessRestored);
+    };
 });
 
 //here are our two functions to turn on a ruleset or turn off a ruleset
@@ -110,7 +100,6 @@ async function deactivateRuleset() {
     let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(disableRule);
     return ourPromise;
 };
-
 async function activateRuleset() {
     let enableRule = {
         enableRulesetIds: ["antiRedditTest"]
@@ -127,9 +116,34 @@ function activateBadge() {
 function deactivateBadge() {
     chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
 }
-
 //and a function to start the badge saying that your time on the site is counting down
 function warningBadge() {
     chrome.action.setBadgeBackgroundColor({ color: '#FF6700' });
     chrome.action.setBadgeText({ text: 'allowed' });
+}
+
+
+//I want to create a class here to make creating the notifications object a little easier
+let NotificationClass = class {
+    constructor(title, message) {
+        this.title = title;
+        this.message = message;
+        this.type = 'basic';
+        this.iconUrl = './tyFav128.png';
+        this.priority = 1;
+        this.silent = true;
+    }
+};
+//here are two functions to create a user notification, and one to delete notification objects
+function notifyUser(notifObj) {
+    chrome.notifications.create(notifObj.title, notifObj, function (notificationId) {
+        console.log(notificationId, 'notification created');
+    });
+};
+function notifyClear(notifId) {
+    //if statement is unnecessary, no error if there isn't one. 
+    //Could add a check to make this console log not show up though
+    chrome.notifications.clear(notifId, () => {
+        console.log('old notification cleared');
+    })
 }
