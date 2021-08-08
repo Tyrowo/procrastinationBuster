@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Tyro's Procrastination Buster",
     "short_name": "P Buster",
-    "version": "0.52",
+    "version": "0.53",
     "version_name": "pre-alpha build",
     "action": {
         "default_popup": "userPrefs.html",
@@ -38,6 +38,7 @@
         "declarativeNetRequest",
         "storage",
         "alarms",
-        "webNavigation"
+        "webNavigation",
+        "notifications"
     ]
 }
