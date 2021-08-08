@@ -1,39 +1,28 @@
 /*
+{url: [{ hostContains: '.reddit' },]}
+{ url: '*://*.reddit.com/*' };
+the two different styles of interfacing with urls
 
-//exploring some alarms stuff
-
-let minute = 1000 * 60 //ms in 1 min
-
-chrome.alarms.onAlarm.addListener(function (alarm) {
-    console.log('alarm triggered, hopefully toggled and alerted');
-    alert('Alarm triggered, hopefully toggled')
-    if (chrome.declarative_net_request.rule_resources.enabled = false)
-        chrome.declarative_net_request.rule_resources.enabled = true;
-    else chrome.declarative_net_request.rule_resources.enabled = false;
-});
-
-
-function createAlarm() {
-    chrome.alarms.create(toggler, {
-        periodInMinutes: 1
-    })
-};
-
-createAlarm;
-
-function (details) {
-    let target = details.url;
-    if (target == 'https://www.google.com/') {
-        console.log('boom');
-    }
-    console.log(target, 'lol')
-}
-
+don't need any other sample code right now
 */
+
+
 
 
 chrome.runtime.onInstalled.addListener(
     function () {
+        chrome.notifications.getPermissionLevel(function (level) {
+            console.log(level);
+        })
+        //checking for permission level, says permissions are granted
+        let testNotify = { type: 'basic', iconUrl: 'tyFav48.png', title: 'Notification Test', message: 'testing one, two' };
+        //Unchecked runtime.lastError: Some of the required properties are missing: type, iconUrl, title and message.
+        chrome.notifications.create('Test Notification', testNotify, function (notificationId) {
+            console.log('did this work');
+            console.log(notificationId);
+        });
+
+
         //right now we don't do anything on installed
         //eventually we need to pull up a new tab with our options
 
@@ -43,10 +32,10 @@ chrome.runtime.onInstalled.addListener(
 
 //you're allowed to visit website ony once, then this triggers and activates the ruleset
 chrome.webNavigation.onCompleted.addListener(details => {
+
+    console.log('did the notification show?')
     console.log('heard.');
-    activateBadge();
     console.log('you can visit reddit this once for the  next ${storage period of time}');
-    activateRuleset();
     //here we've got to add two timers:
     //timer to boot you out of the reddit tab after x time
     let tabBooterTime = {
@@ -82,6 +71,9 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 
     //here we can do the check for the boot out of tab alarm in the same function
     if (alarm.name === 'too much time on tab') {
+        console.log('alotted time on site is over. activating blocking ruleset');
+        activateBadge();
+        activateRuleset();
         //on this alarm activating we want to query whether we have any open tabs of the problem website
         let blockedUrl = { url: '*://*.reddit.com/*' }; //query url prop takes string or array of string 
         return chrome.tabs.query(blockedUrl) //this returns a promise with all the problem urls
