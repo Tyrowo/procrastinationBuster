@@ -23,7 +23,7 @@ chrome.webNavigation.onCompleted.addListener(details => {
 
     //need to make sure that this only triggers once per navigation
     console.log(details);
-    if (details.frameId === 0) return;
+    if (details.frameId !== 0) return;
 
     //need to clear notifications left over from the last cycle of banning
     notifyClear('Access Restored');
@@ -44,7 +44,7 @@ chrome.webNavigation.onCompleted.addListener(details => {
     //timer to deactivate the ruleset
     console.log('both alarms successfully set');
 }, {
-    url: [{ hostContains: '.reddit' },]
+    url: [{ hostContains: 'twitch.tv' }, { hostContains: 'reddit.com' }] //this triggers on either url object
 });
 //end of visit function
 
@@ -67,14 +67,15 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         activateBadge();
         activateRuleset();
         //on this alarm activating we want to query whether we have any open tabs of the problem website
-        let blockedUrl = { url: '*://*.reddit.com/*' }; //query url prop takes string or array of string 
-        return chrome.tabs.query(blockedUrl) //this returns a promise with all the problem urls
-            .then((tabs) => {
-                if (!tabs.length) return; //exit if we don't have any tabs found from the query
-                let map = tabs.map(t => t.id); // this creates a list of ids
-                chrome.tabs.remove(map); //close the tabs found
-                console.log('tabs from map successfully closed');
-            });
+        let urlArray = [{ url: '*://*.reddit.com/*' }, { url: '*://*.twitch.tv/*' }] //query url prop takes string or array of string 
+        urlArray.forEach(url => //by acting on an array of url codes we can close the tabs of all of them
+            chrome.tabs.query(url) //this returns a promise with all the problem urls. doesn't need Return prefix inside the forEach
+                .then((tabs) => {
+                    if (!tabs.length) return; //exit if we don't have any tabs found from the query
+                    let map = tabs.map(t => t.id); // this creates a list of ids
+                    chrome.tabs.remove(map); //close the tabs found
+                    console.log('tabs from map successfully closed');
+                }));
     };
 
 
