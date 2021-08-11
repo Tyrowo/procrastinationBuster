@@ -1,16 +1,34 @@
 /*
-{url: [{ hostContains: '.reddit' },]}
-{ url: '*://*.reddit.com/*' };
+url: [{ hostContains: 'twitch.tv' }, { hostContains: 'reddit.com' }]
+let urlArray = [{ url: '*://*.reddit.com/*' }, { url: '*://*.twitch.tv/*' }]
 the two different styles of interfacing with urls
 
 don't need any other sample code right now
 */
 
+let urlStorage = ['reddit.com', 'twitch.tv'];
+let queryArray = [];
+let timeS = { //timeS short for time storage
+    closeTabs: { delayInMinutes: 1 },
+    deactivate: { delayInMinutes: 2 }
+};
 
+//so on button click [ to update settings] we need to do some tasks
+//if there are any urls in the blocker section need to add them to the url storage
+//then if the timer settings have changed you have to change them
+//  // not sure how to validate if they're different and suggest a default setting but we'll see
+//then gotta update our onvisitarray and our to query arrays
+
+//separate on click button to delete a url
+//and refresh the list of urls which should be one shorter
 
 
 chrome.runtime.onInstalled.addListener(
     function () {
+        console.log('hello');
+        mapObjectsToQuery(urlStorage);
+        userInputSite('reddit.com');
+        userInputSite('twitch.tv');
         //right now we don't do anything on installed
         //eventually we need to pull up a new tab with our options
 
@@ -18,40 +36,24 @@ chrome.runtime.onInstalled.addListener(
         //have the option to pin the extension to the toolbar
     });
 
-//you're allowed to visit website ony once, then this triggers and activates the ruleset
-chrome.webNavigation.onCompleted.addListener(details => {
+function userInputSite(urlString) {
+    //check if userinput urlstring is already a rule in our dictionary
 
-    //need to make sure that this only triggers once per navigation
-    console.log(details);
-    if (details.frameId !== 0) return;
+    //add url to restricted sites dictionary
+    //need to add code
 
-    //need to clear notifications left over from the last cycle of banning
-    notifyClear('Access Restored');
-    //to create a notification we create a new member of our class and pass that into the notify function
-    let siteVisited = new NotificationClass('You have accessed a restricted site', 'You will be allowed [time] until you are kicked off of it.');
-    //we notify the user and initiate a warning badge
-    notifyUser(siteVisited);
-    warningBadge();
-    console.log('warning initiated, setting alarms');
+    //add listener for the url
+    chrome.webNavigation.onCompleted.addListener(function (details) {
+        triggerOnCompleted(details)
+    }, { url: [{ hostContains: urlString }] });
 
-    //here we've got to add two timers:
-    //timer to boot you out of the reddit tab after x time
-    let tabBooterTime = { delayInMinutes: 1 };
-    chrome.alarms.create(name = 'too much time on tab', tabBooterTime);
-    //then we need another alarm to turn the ruleset back off
-    let reactivationTime = { delayInMinutes: 2 }; //sets alarm for 3 mins from activation
-    chrome.alarms.create(name = 'active ruleset timer', reactivationTime);
-    //timer to deactivate the ruleset
-    console.log('both alarms successfully set');
-}, {
-    url: [{ hostContains: 'twitch.tv' }, { hostContains: 'reddit.com' }] //this triggers on either url object
-});
-//end of visit function
+    //add dynamic ruleset entry for url
+    //need to change our file structure
+};
 
 //now we have two active alarms to listen for
 chrome.alarms.onAlarm.addListener(function (alarm) {
     console.log(alarm.name);
-
     //chech which alarm we're looking at
 
     //the first alarm kicks us out of the tabs and initiates the blocker
@@ -67,8 +69,8 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         activateBadge();
         activateRuleset();
         //on this alarm activating we want to query whether we have any open tabs of the problem website
-        let urlArray = [{ url: '*://*.reddit.com/*' }, { url: '*://*.twitch.tv/*' }] //query url prop takes string or array of string 
-        urlArray.forEach(url => //by acting on an array of url codes we can close the tabs of all of them
+        console.log(queryArray);
+        queryArray.forEach(url => //by acting on an array of url codes we can close the tabs of all of them
             chrome.tabs.query(url) //this returns a promise with all the problem urls. doesn't need Return prefix inside the forEach
                 .then((tabs) => {
                     if (!tabs.length) return; //exit if we don't have any tabs found from the query
@@ -77,7 +79,6 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                     console.log('tabs from map successfully closed');
                 }));
     };
-
 
     //the second alarm deactivates the blocker
     if (alarm.name === 'active ruleset timer') {
@@ -92,6 +93,30 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         notifyUser(accessRestored);
     };
 });
+
+//splitting the onCompleted listener logic into its own function to create new listeners every time a user
+//adds a new site to their restricted websites
+//you're allowed to visit website ony once, then this triggers and activates the ruleset
+function triggerOnCompleted(details) {
+    //need to make sure that this only triggers once per navigation
+    console.log(details);
+    if (details.frameId !== 0) return;
+
+    //need to clear notifications left over from the last cycle of banning
+    notifyClear('Access Restored');
+    //to create a notification we create a new member of our class and pass that into the notify function
+    let siteVisited = new NotificationClass('You have accessed a restricted site', 'You will be allowed [time] until you are kicked off of it.');
+    //we notify the user and initiate a warning badge
+    notifyUser(siteVisited);
+    warningBadge();
+    console.log('warning initiated, setting alarms');
+    //here we've got to add two timers:
+    //timer to boot you out of the reddit tab after x time
+    chrome.alarms.create(name = 'too much time on tab', timeS.closeTabs);
+    //then we need another alarm to turn the ruleset back off
+    chrome.alarms.create(name = 'active ruleset timer', timeS.deactivate);
+    console.log('both alarms successfully set');
+};
 
 //here are our two functions to turn on a ruleset or turn off a ruleset
 async function deactivateRuleset() {
@@ -148,3 +173,11 @@ function notifyClear(notifId) {
         console.log('old notification cleared');
     })
 }
+
+//map and forEach aren't working, so I've made two functions to make object arrays for url validation
+function mapObjectsToQuery(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        x = { url: `*://*.${arr[i]}/*` };
+        queryArray.push(x);
+    }
+};
