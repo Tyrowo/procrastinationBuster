@@ -12,6 +12,7 @@ let timeS = { //timeS short for time storage
     closeTabs: { delayInMinutes: 1 },
     deactivate: { delayInMinutes: 2 }
 };
+var siteCache = {};
 
 //so on button click [ to update settings] we need to do some tasks
 //if there are any urls in the blocker section need to add them to the url storage
@@ -22,6 +23,17 @@ let timeS = { //timeS short for time storage
 //separate on click button to delete a url
 //and refresh the list of urls which should be one shorter
 
+
+//this is a test oncompleted listener, when you go to test.com it triggers
+//we're testing deactivating the listener with this before there's a button to push on their user settings
+chrome.webNavigation.onCompleted.addListener(function () {
+    //want to make a test so that when I visit this url it'll delete the ruleset
+    console.log('deleting listener');
+    chrome.webNavigation.onCompleted.removeListener(siteCache['reddit.com']);
+    console.log('listener gone?');
+}, {
+    url: [{ hostContains: 'test.com' }]
+})
 
 chrome.runtime.onInstalled.addListener(
     function () {
@@ -36,19 +48,26 @@ chrome.runtime.onInstalled.addListener(
         //have the option to pin the extension to the toolbar
     });
 
+//this is our function for when a user adds a site to their banned list
 function userInputSite(urlString) {
     //check if userinput urlstring is already a rule in our dictionary
+    if (urlString in siteCache) return;
 
-    //add url to restricted sites dictionary
-    //need to add code
 
+    //logic to turn our listener registration function in to a named function
+    var newListener = function (details) {
+        triggerOnCompleted(details);
+    };
     //add listener for the url
-    chrome.webNavigation.onCompleted.addListener(function (details) {
-        triggerOnCompleted(details)
-    }, { url: [{ hostContains: urlString }] });
+    chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
+
+    //add url and paired function to restricted sites dictionary
+    siteCache[urlString] = newListener;
 
     //add dynamic ruleset entry for url
     //need to change our file structure
+
+    console.log(`successfully added ${urlString} to restricted sites.`)
 };
 
 //now we have two active alarms to listen for
