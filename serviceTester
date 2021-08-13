@@ -1,18 +1,29 @@
 /*
+
 url: [{ hostContains: 'twitch.tv' }, { hostContains: 'reddit.com' }]
 let urlArray = [{ url: '*://*.reddit.com/*' }, { url: '*://*.twitch.tv/*' }]
 the two different styles of interfacing with urls
 
 don't need any other sample code right now
+
+need a deleteuserinput function to antimirror userinput
+delete ruleset and from dict and from array in dict and decrement site count and remove listener
+
+    console.log('deleting listener');
+    chrome.webNavigation.onCompleted.removeListener(siteCache['reddit.com']);
+    console.log('listener gone?');
 */
 
 let urlStorage = ['reddit.com', 'twitch.tv'];
-let queryArray = [];
 let timeS = { //timeS short for time storage
     closeTabs: { delayInMinutes: 1 },
-    deactivate: { delayInMinutes: 2 }
+    deactivate: { delayInMinutes: 2 } //these default to 1 & 2 but should be updated to user prefs
 };
-var siteCache = {};
+let siteCache = {
+    dynamicIds: ['no 0th id', null, null, null, null, null, null, null, null, null, null],
+    siteCount: 0,
+    curRuleset: [] //this will be a list of all our rules to dynamically turn on and off
+};
 
 //so on button click [ to update settings] we need to do some tasks
 //if there are any urls in the blocker section need to add them to the url storage
@@ -27,10 +38,9 @@ var siteCache = {};
 //this is a test oncompleted listener, when you go to test.com it triggers
 //we're testing deactivating the listener with this before there's a button to push on their user settings
 chrome.webNavigation.onCompleted.addListener(function () {
-    //want to make a test so that when I visit this url it'll delete the ruleset
-    console.log('deleting listener');
-    chrome.webNavigation.onCompleted.removeListener(siteCache['reddit.com']);
-    console.log('listener gone?');
+
+    let promise = chrome.declarativeNetRequest.getDynamicRules();
+    console.log(promise); //this should return our ruleset?
 }, {
     url: [{ hostContains: 'test.com' }]
 })
@@ -38,9 +48,9 @@ chrome.webNavigation.onCompleted.addListener(function () {
 chrome.runtime.onInstalled.addListener(
     function () {
         console.log('hello');
-        mapObjectsToQuery(urlStorage);
         userInputSite('reddit.com');
         userInputSite('twitch.tv');
+        chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [1, 2] });
         //right now we don't do anything on installed
         //eventually we need to pull up a new tab with our options
 
@@ -49,25 +59,44 @@ chrome.runtime.onInstalled.addListener(
     });
 
 //this is our function for when a user adds a site to their banned list
-function userInputSite(urlString) {
+async function userInputSite(urlString) {
     //check if userinput urlstring is already a rule in our dictionary
     if (urlString in siteCache) return;
-
-
-    //logic to turn our listener registration function in to a named function
+    //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
+    if (siteCache['siteCount'] >= 10) {
+        let sitesMaxxed = new NotificationClass('Too Many Restricted Sites', 'The maximum amount of allowed site restrictions are 10. Please delete one or more of your current site restrictions to add new ones.');
+        notifyUser(sitesMaxxed);
+    }
+    //first add site listener
+    //logic to turn our listener registration function in to a named function, and then add the listener
     var newListener = function (details) {
         triggerOnCompleted(details);
     };
-    //add listener for the url
     chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
 
-    //add url and paired function to restricted sites dictionary
+    //gotta get the first null value in the array
+    console.log(siteCache['dynamicIds']);
+    let idNumber = null;
+    for (let i = 1; i < siteCache['dynamicIds'].length; i++) { //start at 1 because 0 should never be null
+        console.log(i, siteCache['dynamicIds'], siteCache['dynamicIds'][i]);
+        if (siteCache['dynamicIds'][i] === null) {
+            idNumber = i;
+            siteCache['dynamicIds'][i] = urlString;
+            console.log('set idNumber to ', i);
+            break;
+        };
+    };
+    //then we need to update our dictionary.
+    //add url and paired function to restricted sites dictionary, increment our site count, add url to array
     siteCache[urlString] = newListener;
+    siteCache['siteCount']++;
 
-    //add dynamic ruleset entry for url
-    //need to change our file structure
+    //after updating all of this we should update our siteCache ruleset too
+    siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
+    //we can return our promise and then on success log it
+    console.log(`successfully added site restriction for ${urlString}`);
+    console.log(siteCache['curRuleset']);
 
-    console.log(`successfully added ${urlString} to restricted sites.`)
 };
 
 //now we have two active alarms to listen for
@@ -77,8 +106,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 
     //the first alarm kicks us out of the tabs and initiates the blocker
     if (alarm.name === 'too much time on tab') {
-
-        //first clear out our old notification 
+        //first clear out our old notification
         notifyClear('You have accessed a restricted site');
         //now we make a new notification
         let timeOver = new NotificationClass('Activating Blocker',
@@ -86,19 +114,21 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         notifyUser(timeOver);
         console.log('activating blocker');
         activateBadge();
-        activateRuleset();
+        //we can use the storaged ruleset in our object to enable and disable
+        console.log(siteCache['curRuleset']);
+        chrome.declarativeNetRequest.updateDynamicRules({ addRules: siteCache['curRuleset'] }); //update dynamic rules takes an object with addRules &/or removeRuleIds
         //on this alarm activating we want to query whether we have any open tabs of the problem website
-        console.log(queryArray);
+        let queryArray = mapObjectsToQuery(siteCache['dynamicIds'])
         queryArray.forEach(url => //by acting on an array of url codes we can close the tabs of all of them
             chrome.tabs.query(url) //this returns a promise with all the problem urls. doesn't need Return prefix inside the forEach
                 .then((tabs) => {
                     if (!tabs.length) return; //exit if we don't have any tabs found from the query
+
                     let map = tabs.map(t => t.id); // this creates a list of ids
                     chrome.tabs.remove(map); //close the tabs found
                     console.log('tabs from map successfully closed');
                 }));
     };
-
     //the second alarm deactivates the blocker
     if (alarm.name === 'active ruleset timer') {
         //with the alarm triggered then we want to deactivate the ruleset again
@@ -137,22 +167,6 @@ function triggerOnCompleted(details) {
     console.log('both alarms successfully set');
 };
 
-//here are our two functions to turn on a ruleset or turn off a ruleset
-async function deactivateRuleset() {
-    let disableRule = {
-        disableRulesetIds: ["antiRedditTest"]
-    };
-    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(disableRule);
-    return ourPromise;
-};
-async function activateRuleset() {
-    let enableRule = {
-        enableRulesetIds: ["antiRedditTest"]
-    };
-    let ourPromise = await chrome.declarativeNetRequest.updateEnabledRulesets(enableRule);
-    return ourPromise;
-};
-
 //and here are two functions to turn on or off the badge
 function activateBadge() {
     chrome.action.setBadgeBackgroundColor({ color: '#F00' }); //can add callback function if you want to cascade
@@ -186,7 +200,7 @@ function notifyUser(notifObj) {
     });
 };
 function notifyClear(notifId) {
-    //if statement is unnecessary, no error if there isn't one. 
+    //if statement is unnecessary, no error if there isn't one.
     //Could add a check to make this console log not show up though
     chrome.notifications.clear(notifId, () => {
         console.log('old notification cleared');
@@ -195,8 +209,39 @@ function notifyClear(notifId) {
 
 //map and forEach aren't working, so I've made two functions to make object arrays for url validation
 function mapObjectsToQuery(arr) {
+    let qArr = [];
     for (let i = 0; i < arr.length; i++) {
-        x = { url: `*://*.${arr[i]}/*` };
-        queryArray.push(x);
+        qArr.push({ url: `*://*.${arr[i]}/*` });
+    }
+    return qArr;
+};
+
+//function to create a new ruleset for the set of urls
+function createDynamicRuleset(urlArray) {
+    //create a storage object for our new ruleset in the correct format for our dynamic ruleset
+    let ruleset = [];
+    //iterate over our list of website domains
+    for (let i = 1; i < urlArray.length; i++) { //start at 1 because no 0 index
+        if (urlArray[i] !== null) { //check if they're not empty slots
+            let filter = `*://*.${urlArray[i]}/*` //convert to filter format
+            //create an object that's the rule format with the input of the id number and the new filter formatted url
+            let newRule = {
+                'id': i + 69, //adding 69 to the id number to hopefully never overlap with other extension rules
+                'priority': 1,
+                'action': { 'type': 'block' },
+                'condition': {
+                    'urlFilter': filter,
+                    'resourceTypes': ['main_frame']
+                }
+            };
+            ruleset.push(newRule); //and push that rule into our list of rules
+        }
+    }
+    return ruleset;
+};
+
+async function deactivateRuleset() {
+    for (let i = 70; i <= 80; i++) {
+        await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
     }
 };
