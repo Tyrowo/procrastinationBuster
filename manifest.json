@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Tyro's Procrastination Buster",
     "short_name": "P Buster",
-    "version": "0.53",
+    "version": "0.54",
     "version_name": "pre-alpha build",
     "action": {
         "default_popup": "userPrefs.html",
@@ -21,16 +21,7 @@
     },
     "author": "Tyler Crews",
     "background": {
-        "service_worker": "serviceTester.js"
-    },
-    "declarative_net_request": {
-        "rule_resources": [
-            {
-                "id": "antiRedditTest",
-                "enabled": false,
-                "path": "antiRedditTest.json"
-            }
-        ]
+        "service_worker": "serviceWorker.js"
     },
     "incognito": "spanning",
     "permissions": [
