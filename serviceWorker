@@ -1,28 +1,16 @@
 /*
+don't need any sample code right now
 
-url: [{ hostContains: 'twitch.tv' }, { hostContains: 'reddit.com' }]
-let urlArray = [{ url: '*://*.reddit.com/*' }, { url: '*://*.twitch.tv/*' }]
-the two different styles of interfacing with urls
-
-don't need any other sample code right now
-
-need a deleteuserinput function to antimirror userinput
-delete ruleset and from dict and from array in dict and decrement site count and remove listener
-
-    console.log('deleting listener');
-    chrome.webNavigation.onCompleted.removeListener(siteCache['reddit.com']);
-    console.log('listener gone?');
 */
 
-let urlStorage = ['reddit.com', 'twitch.tv'];
-let timeS = { //timeS short for time storage
-    closeTabs: { delayInMinutes: 1 },
-    deactivate: { delayInMinutes: 2 } //these default to 1 & 2 but should be updated to user prefs
-};
+//first we'll make a storage object for all our user settings
 let siteCache = {
     dynamicIds: ['no 0th id', null, null, null, null, null, null, null, null, null, null],
     siteCount: 0,
-    curRuleset: [] //this will be a list of all our rules to dynamically turn on and off
+    curRuleset: [], //this will be a list of all our rules to dynamically turn on and off
+    //now two properties for our time settings
+    closeTabs: { delayInMinutes: 1 }, //default to 1
+    deactivate: { delayInMinutes: 2 } //default to 2. must be greater than CloseTabs
 };
 
 //so on button click [ to update settings] we need to do some tasks
@@ -39,8 +27,7 @@ let siteCache = {
 //we're testing deactivating the listener with this before there's a button to push on their user settings
 chrome.webNavigation.onCompleted.addListener(function () {
 
-    let promise = chrome.declarativeNetRequest.getDynamicRules();
-    console.log(promise); //this should return our ruleset?
+    userRemoveSite('twitch.tv');
 }, {
     url: [{ hostContains: 'test.com' }]
 })
@@ -50,8 +37,9 @@ chrome.runtime.onInstalled.addListener(
         console.log('hello');
         userInputSite('reddit.com');
         userInputSite('twitch.tv');
-        chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [1, 2] });
-        //right now we don't do anything on installed
+        chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
+        //want to delete all rules just in case someone uninstalls with the blocker turned on and needs to reinstall to delete the blocks
+
         //eventually we need to pull up a new tab with our options
 
         //have the user pick their website to block
@@ -75,28 +63,26 @@ async function userInputSite(urlString) {
     chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
 
     //gotta get the first null value in the array
-    console.log(siteCache['dynamicIds']);
-    let idNumber = null;
     for (let i = 1; i < siteCache['dynamicIds'].length; i++) { //start at 1 because 0 should never be null
-        console.log(i, siteCache['dynamicIds'], siteCache['dynamicIds'][i]);
-        if (siteCache['dynamicIds'][i] === null) {
-            idNumber = i;
+        if (siteCache['dynamicIds'][i] === null) { //find null value
             siteCache['dynamicIds'][i] = urlString;
             console.log('set idNumber to ', i);
             break;
         };
     };
     //then we need to update our dictionary.
-    //add url and paired function to restricted sites dictionary, increment our site count, add url to array
+    //add url and paired function to restricted sites dictionary, increment our site count
     siteCache[urlString] = newListener;
     siteCache['siteCount']++;
 
     //after updating all of this we should update our siteCache ruleset too
     siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
-    //we can return our promise and then on success log it
-    console.log(`successfully added site restriction for ${urlString}`);
-    console.log(siteCache['curRuleset']);
 
+    //now notify user that the site has successfully been restricted
+    console.log(`successfully added site restriction for ${urlString}`);
+    let restrictedSite = new NotificationClass('Site Restricted', `You have successfully restricted access to ${urlString}.`);
+    notifyUser(restrictedSite);
+    console.log(siteCache['curRuleset']);
 };
 
 //now we have two active alarms to listen for
@@ -109,8 +95,9 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         //first clear out our old notification
         notifyClear('You have accessed a restricted site');
         //now we make a new notification
+        let remainingTime = siteCache.deactivate.delayInMinutes - siteCache.closeTabs.delayInMinutes;
         let timeOver = new NotificationClass('Activating Blocker',
-            'Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in [blockTime - allowedTime]');
+            `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime}.`);
         notifyUser(timeOver);
         console.log('activating blocker');
         activateBadge();
@@ -135,7 +122,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         console.log('deactivating blocker');
         //instead of just a console log maybe we give a notification here
         deactivateBadge();
-        deactivateRuleset();
+        chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
         //now that the rules allow for use of the website again, we notify the user that they have access again
         notifyClear('Activating Blocker'); //clear out the old notification first
         let accessRestored = new NotificationClass('Access Restored', `Your time limit has expired, and you've regained access to your restricted site.`);
@@ -154,16 +141,16 @@ function triggerOnCompleted(details) {
     //need to clear notifications left over from the last cycle of banning
     notifyClear('Access Restored');
     //to create a notification we create a new member of our class and pass that into the notify function
-    let siteVisited = new NotificationClass('You have accessed a restricted site', 'You will be allowed [time] until you are kicked off of it.');
+    let siteVisited = new NotificationClass('You have accessed a restricted site', `You will be allowed ${siteCache.closeTabs.delayInMinutes} minutes until you are kicked off of all restricted sites.`);
     //we notify the user and initiate a warning badge
     notifyUser(siteVisited);
     warningBadge();
     console.log('warning initiated, setting alarms');
     //here we've got to add two timers:
     //timer to boot you out of the reddit tab after x time
-    chrome.alarms.create(name = 'too much time on tab', timeS.closeTabs);
+    chrome.alarms.create(name = 'too much time on tab', siteCache.closeTabs);
     //then we need another alarm to turn the ruleset back off
-    chrome.alarms.create(name = 'active ruleset timer', timeS.deactivate);
+    chrome.alarms.create(name = 'active ruleset timer', siteCache.deactivate);
     console.log('both alarms successfully set');
 };
 
@@ -240,8 +227,31 @@ function createDynamicRuleset(urlArray) {
     return ruleset;
 };
 
-async function deactivateRuleset() {
-    for (let i = 70; i <= 80; i++) {
-        await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
-    }
+//this is our function for when a user removes a site from their restricted list
+async function userRemoveSite(urlString) {
+    //check if userinput urlstring is already a rule in our dictionary
+    if (!(urlString in siteCache)) return; // this shouldn't ever happen, because the button should supply the urlstring
+    //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
+
+    //first remove the site listener
+    //our listener function's name is saved in our site cache
+    console.log('deleting listener');
+    chrome.webNavigation.onCompleted.removeListener(siteCache[urlString]);
+
+    //gotta find the site in the array and nullify it
+    console.log(siteCache['dynamicIds'],);
+    let idNumber = siteCache['dynamicIds'].indexOf(urlString);
+    siteCache['dynamicIds'][idNumber] = null;
+    //then we need to remove it from our dictionary and decrement our site count
+    delete siteCache[urlString];
+    siteCache['siteCount']--;
+    //after removing all of this info we need to update our siteCache ruleset too, will have one fewer rule than before
+    siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
+
+    //now notify the user that the site has successfully been removed
+    console.log(`successfully removed site restriction for ${urlString}`);
+    let removedRestriction = new NotificationClass('Site Restriction Removed', `You have successfully removed your restrictions to access ${urlString}. If your blocker is currently active, you must wait for it to deactivate to access the site.`);
+    notifyUser(removedRestriction);
+    //this way of removing will remove it from the ruleset, but will not be immediately accessible if restriction is currently in place
+    console.log(siteCache['curRuleset']);
 };
