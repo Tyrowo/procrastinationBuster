@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<!-- this page contains the information, options page, and faq for 
+    my procrastination buster chrome extension.-->
+<html lang='en'>
+
+<head>
+    <style>
+        @font-face {
+            font-family: 'Tyro Inked';
+            src: url('./tyroInked.otf') format('otf');
+            src: url('./tyroInked.otf') format('opentype');
+            src: url('./tyroInked.woff2') format('WOFF2');
+        }
+
+        body {
+            width: 92vw;
+            background: linear-gradient(169deg, #fb50c9 25%, #07d669 25% 75%, #1c92f5 75% 100%);
+            font-family: 'Tyro Inked';
+            background-repeat: repeat-x;
+            margin: 2vw 5vw 8vw 5vw;
+        }
+
+        p {
+            background-color: oldlace;
+            font-size: 2vw;
+            padding: 2vw;
+            border-radius: 2vw;
+        }
+
+        .button {
+            background-color: #07D669;
+            font-family: 'Tyro Inked';
+            font-size: 3vw;
+            /* Green */
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            cursor: pointer;
+        }
+
+        .button1 {
+            background-color: white;
+            color: black;
+            border: 2px solid #FB50C9;
+        }
+
+        .button1:hover {
+            background-color: #FB50C9;
+            color: white;
+        }
+
+        .button2 {
+            background-color: white;
+            color: black;
+            border: 2px solid #07D669;
+        }
+
+        .button2:hover {
+            background-color: #07D669;
+            color: white;
+        }
+
+        .button3 {
+            background-color: white;
+            color: black;
+            border: 2px solid #1C92F5;
+        }
+
+        .button3:hover {
+            background-color: #1C92F5;
+            color: white;
+        }
+
+        .button4 {
+            background-color: white;
+            color: black;
+            border: 2px solid #555555;
+        }
+
+        .button4:hover {
+            background-color: #555555;
+            color: white;
+        }
+    </style>
+
+    <script src='serviceWorker.js'></script>
+</head>
+
+<body>
+    <h1>Tyrowo's Procrastination Buster </h1>
+
+    <button class='button button1' id='button 1'><b> Instructions</b></button>
+
+    <button class='button button2' id='button 2'><b>Info</b></button>
+
+    <button class='button button3' id='button 3'><b>FAQ</b></button>
+
+    <button class='button button4' id='button 4'><b>User Settings</b></button>
+
+    <div id='Instructions' style='display: none;'>
+    </div>
+
+    <!-- about the product-->
+    <div id='Info' style='display: inline;'>
+        <p> Thanks for using my extension! <br>
+            Have you ever felt like you just need to be kept honest with your internet use?<br>
+            That you could accomplish so much more, if you just stayed off your habit websites? <br>
+            That you just mindlessly key into a new tab, hit the same url, and doomscroll through the same front
+            page
+            9001
+            times a day? <br>
+            <br>
+            Habituated internet usage is an addiction to the dopamine high from pushing a happy button over and over
+            every
+            day, every hour, every minute.<br>
+            And anyone knows that trying to quit a behavior cold turkey begs most people to fail.<br>
+            <br>
+            If your habits are anything like mine were, The Procrastination Buster can be your baby step towards
+            rehabilitation. It acts as a tool to wean off your problem sites, where you can restrict access for a period
+            of time that you choose, with the flexibility to choose the amount of time you think it's appropriate to
+            spend on them. <br>
+            <br>
+            The Procrastination Buster is not parental advisory software. <br>
+            This is a product for people who want help in policing their own behavior, not in policing others'.
+            <br>
+            You can name up to 10 websites to restrict your usage.<br>
+            You choose the amount of time you want to be allowed on your problem websites, <br>
+            and you choose the amount of time you Don't want to be allowed on the sites. <br>
+            It's as simple as that. <br>
+            <br>
+            I built this extension for myself because I just got sick of spending so much extra time in my day on
+            reddit.<br>
+            <!-- this ending sucks, re do it.-->
+            It's not a bad site, by any means. But I spent more time on there than it really deserved. <br>
+            and in building this product I've been able to help myself. <br>
+            And proved that I could build a successful product with my coding. <br>
+            At an important time in my life, where I'm trying to teach myself to code, and change careers. <br>
+            Whereas in the past my academic endeavors have been thwarted by my internet usage habits, <br>
+            I'm determined to make changes and be more successful in the future. <br>
+            <br>
+            So if this product helps you too, that's great. <br>
+            Good luck to you in your future endeavors! <br>
+            -Tyler
+        </p>
+    </div>
+    <!-- mention that this is built with the newest manifest v3 extension-->
+    <!-- mention that it's fast from the declarative net requests?-->
+
+    <!-- how to use the extension -->
+
+    <!-- then the section with your rules and make rule buttons and delete rule buttons and change time settings buttons -->
+
+    <!-- faq-->
+    <div id='FAQ' style='display: none;'>
+        <h2> Why am I not receiving notifications from my extension?</h2>
+        <!-- way to toggle these answers on and off?-->
+        <p>First, check that you have any websites restricted on the extension. <br>
+            If you're not seeing notifications when registering or unregistering websites to your extension, <br>
+            you should check your notification settings on your windows device for chrome. <br>
+            for windows this is in settings -> system -> notifications and actions. <br>
+            On that page make sure that you have "get notifications from apps" turned on and notifications for
+            chrome
+            turned
+            on. </p>
+        <h2> Why isn't the extension doing anything?</h2>
+        <p> If you haven't registered any websites to your extension try doing that first. <br>
+            There is the possibility that your extension has become inactive for some reason, <br>
+            <!-- might be able to fix this by just pulling up sync settings on action click-->
+            so to check that try restarting the extension by going to chrome://extensions in your chrome browser,
+            <br>
+            finding the Procrastination Buster in your list of extensions, and clicking the slider to turn it off
+            and
+            turn
+            it on again.
+        </p>
+        <!-- pic of chrome extension page-->
+        <h2> Why can't I see the extension icon in chrome?</h2>
+        <p> Chrome recently updated their extensions hiding all newly installed extensions in the puzzle piece icon
+            to
+            the
+            right of the omnibar. <br>
+            <!-- need to add pic here of omnibar puzzle piece-->
+            If you click the puzzle piece it should bring up a list of all of your enabled extensions. <br>
+            Find the Procrastination Buster icon
+            <!-- pic of icon--> and click the pin next to it so that it is highlighted blue.
+        </p>
+        <!-- or just show the dropdown menu with it turned blue-->
+        <h2> When my websites are blocked where can I see how much time I have left?</h2>
+        <p> Unfortunately this was a feature planned during development, to have the 'active' badge <br>
+            on the extension icon display how much time was remaining before you could access your site. <br>
+            However, unfortunately this feature was too consumptive on memory and demanding of the browser. <br>
+            So this feature was foregone, and you can only see whether or not your restricted sites are being
+            actively
+            blocked.<br>
+            In order to see this feature make sure you have the extension pinned to your taskbar.</p>
+        <!--don't know if i'm going to incorporate this feature-->
+        <h2> I uninstalled my extension in the middle of a block period, and now my restricted sites are blocked
+            forever??
+        </h2>
+        <p> Well, that's what you get for cheating yourself! <br>
+            Just kidding lol <br>
+            This error was encountered during testing and a fix was implemented into the installation code. <br>
+            All you have to do is reinstall the Procrastination Buster extension, which will clear all of your
+            actively
+            blocked urls. <br>
+            Once you've reinstalled, uninstall the extension before navigating to any of your restricted websites.
+            <br>
+            You should be able to browse regularly.
+        </p>
+    </div>
+
+    <!-- user settings section-->
+    <div id='User Settings' style='display: none;'>
+    </div>
+
+</body>
+
+</html>
