@@ -11,6 +11,7 @@ document.getElementById('button 3').addEventListener('click', function (e) {
 });
 document.getElementById('button 4').addEventListener('click', function (e) {
     makeVisible('User Settings');
+    populateSettings();
 });
 
 function makeVisible(id) {
@@ -85,17 +86,32 @@ document.getElementById('blockNum').addEventListener('change', function () {
 //two buttons to submit new user settings
 //using a button instead of a submit to make the page not refresh
 document.getElementById('urlSubmit').addEventListener('click', function (e) {
-    console.log(document.getElementById('url input').value);
-    makeVisible('FAQ'); //this is just to show it's working
-    //need to refresh website rules
+    let url = document.getElementById('url input').value;
+    chrome.storage.sync.set({ userInput: ['new url', url] });
+    populateSettings();
 });
 document.getElementById('timeSubmit').addEventListener('click', function (e) {
     let timeAllow = document.getElementById('allowRange').value;
     let timeBlock = document.getElementById('blockRange').value;
     chrome.storage.sync.set({ userInput: ['new times', timeAllow, timeBlock] });
-    makeVisible('FAQ'); //this is just to show it's working
-    //need to refresh website rules
 });
 
 
 //need function to populate user settings
+function populateSettings() {
+
+    chrome.storage.sync.get(['syncCache'], function (x) {
+        let set = x.syncCache.dynamicIds;
+        let update = '';
+        for (let i = 1; i < set.length; i++) {
+            if (set[i] !== null) {
+                update += `${i}. ${set[i]} <button id='delete url'> delete url </button> <br>`;
+            }
+        }
+        document.getElementById('user settings p').innerHTML = update;
+    })
+};
+//test button to refresh the settings to see if it's working
+document.getElementById('refresh settings').addEventListener('change', function () {
+    populateSettings();
+});
