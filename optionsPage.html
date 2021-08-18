@@ -28,6 +28,10 @@
             border-radius: 2vw;
         }
 
+        label {
+            font-size: 2.5vw;
+        }
+
         .button {
             background-color: #07D669;
             font-family: 'Tyro Inked';
@@ -90,10 +94,10 @@
         }
     </style>
 
-    <script src='serviceWorker.js'></script>
 </head>
 
 <body>
+
     <h1>Tyrowo's Procrastination Buster </h1>
 
     <button class='button button1' id='button 1'><b> Instructions</b></button>
@@ -108,7 +112,7 @@
     </div>
 
     <!-- about the product-->
-    <div id='Info' style='display: inline;'>
+    <div id='Info' style='display: none;'>
         <p> Thanks for using my extension! <br>
             Have you ever felt like you just need to be kept honest with your internet use?<br>
             That you could accomplish so much more, if you just stayed off your habit websites? <br>
@@ -137,15 +141,16 @@
             <br>
             I built this extension for myself because I just got sick of spending so much extra time in my day on
             reddit.<br>
+            In the past I've allowed my internet usage habits to get the better of me, especially when pursuing
+            academics. <br>
+            So now that I'm learning how to code and trying to shift careers, I wanted to build this product as a test
+            of my skills, with the added benefit of curbing my internet habits and honing my focus. <br>
             <!-- this ending sucks, re do it.-->
-            It's not a bad site, by any means. But I spent more time on there than it really deserved. <br>
-            and in building this product I've been able to help myself. <br>
-            And proved that I could build a successful product with my coding. <br>
-            At an important time in my life, where I'm trying to teach myself to code, and change careers. <br>
             Whereas in the past my academic endeavors have been thwarted by my internet usage habits, <br>
             I'm determined to make changes and be more successful in the future. <br>
             <br>
-            So if this product helps you too, that's great. <br>
+            In building this product I've been able to help myself, and if it's able to help you too, I'm overjoyed.
+            <br>
             Good luck to you in your future endeavors! <br>
             -Tyler
         </p>
@@ -153,24 +158,27 @@
     <!-- mention that this is built with the newest manifest v3 extension-->
     <!-- mention that it's fast from the declarative net requests?-->
 
-    <!-- how to use the extension -->
-
-    <!-- then the section with your rules and make rule buttons and delete rule buttons and change time settings buttons -->
-
     <!-- faq-->
     <div id='FAQ' style='display: none;'>
-        <h2> Why am I not receiving notifications from my extension?</h2>
+        <h2>
+            <button id='faqB1'>v</button>
+            Why am I not receiving notifications from my extension?
+        </h2>
         <!-- way to toggle these answers on and off?-->
-        <p>First, check that you have any websites restricted on the extension. <br>
-            If you're not seeing notifications when registering or unregistering websites to your extension, <br>
-            you should check your notification settings on your windows device for chrome. <br>
+        <p id='faq1' style='display: none;''>First, check that you have any websites restricted on the extension. Click the "User Settings" button above,
+            and your restricted websites should be listed. <br>
+            If you' re not seeing notifications when registering or unregistering websites to your extension, or when
+            visiting your restricted websites you should check your notification settings on your windows device for
+            chrome. <br>
             for windows this is in settings -> system -> notifications and actions. <br>
             On that page make sure that you have "get notifications from apps" turned on and notifications for
             chrome
             turned
             on. </p>
-        <h2> Why isn't the extension doing anything?</h2>
-        <p> If you haven't registered any websites to your extension try doing that first. <br>
+
+        <h2> <button id='faqB2'>v</button> Why isn't the extension doing anything?</h2>
+        <p id='faq2' style='display: none;'> If you haven't registered any websites to your extension try doing that
+            first. <br>
             There is the possibility that your extension has become inactive for some reason, <br>
             <!-- might be able to fix this by just pulling up sync settings on action click-->
             so to check that try restarting the extension by going to chrome://extensions in your chrome browser,
@@ -181,8 +189,10 @@
             it on again.
         </p>
         <!-- pic of chrome extension page-->
-        <h2> Why can't I see the extension icon in chrome?</h2>
-        <p> Chrome recently updated their extensions hiding all newly installed extensions in the puzzle piece icon
+
+        <h2> <button id='faqB3'>v</button> Why can't I see the extension icon in chrome?</h2>
+        <p id='faq3' style='display: none;'> Chrome recently updated their extensions hiding all newly installed
+            extensions in the puzzle piece icon
             to
             the
             right of the omnibar. <br>
@@ -192,19 +202,23 @@
             <!-- pic of icon--> and click the pin next to it so that it is highlighted blue.
         </p>
         <!-- or just show the dropdown menu with it turned blue-->
-        <h2> When my websites are blocked where can I see how much time I have left?</h2>
-        <p> Unfortunately this was a feature planned during development, to have the 'active' badge <br>
-            on the extension icon display how much time was remaining before you could access your site. <br>
-            However, unfortunately this feature was too consumptive on memory and demanding of the browser. <br>
-            So this feature was foregone, and you can only see whether or not your restricted sites are being
-            actively
-            blocked.<br>
-            In order to see this feature make sure you have the extension pinned to your taskbar.</p>
+
+        <h2> <button id='faqB4'>v</button> When my websites are blocked where can I see how much time I have left?</h2>
+        <p id='faq4' style='display: none;'> Unfortunately this was a feature planned during development, to have the
+            'active' badge on the extension icon display how much time was remaining before you could access your site.
+            <br>
+            The feature was too consumptive on memory and demanding of the browser, so this feature was foregone, and
+            you can only see whether or not your restricted sites are being
+            actively blocked.<br>
+            In order to see this feature make sure you have the extension pinned to your taskbar.
+        </p>
         <!--don't know if i'm going to incorporate this feature-->
-        <h2> I uninstalled my extension in the middle of a block period, and now my restricted sites are blocked
+
+        <h2> <button id='faqB5'>v</button> I uninstalled my extension in the middle of a block period, and now my
+            restricted sites are blocked
             forever??
         </h2>
-        <p> Well, that's what you get for cheating yourself! <br>
+        <p id='faq5' style='display: none;'> Well, that's what you get for cheating yourself! <br>
             Just kidding lol <br>
             This error was encountered during testing and a fix was implemented into the installation code. <br>
             All you have to do is reinstall the Procrastination Buster extension, which will clear all of your
@@ -218,8 +232,33 @@
 
     <!-- user settings section-->
     <div id='User Settings' style='display: none;'>
+
+        <form action='/action_page.php'>
+            <!-- not sure what the action is supposed to be-->
+            <label for='urlI'> Input a URL Domain to restrict: </label> <br>
+            <input type='text' id='url input' name='urlI'> <input type='submit' value='submit new website'>
+            <br>
+            <label for='urlI'> (i.e. "google.com" - don't include http or www) </label><br>
+        </form>
+        <br>
+        <br>
+        <form>
+            <!-- need to switch these forms from inline js to a function in the js page-->
+            <label for='allowRange'>Choose how long you're allowed on your restricted sites (in minutes) </label> <br>
+            <input type='range' id='allowRange' name='allowRange' min='0' max='180' value='0'>
+            <input type='number' id='allowNum' name='allowNum' min='0' max='180' value='0'>
+            <label for='allowNum'>mins</label>
+            <br>
+            <label for='blockRange'>Choose how long to be blocked from restricted sites (in minutes) </label> <br>
+            <input type='range' id='blockRange' name='blockRange' min='15' max='10080' step='15' value='15'>
+            <input type='number' id='blockNum' name='blockNum' min='15' max='10080' step='15' value='15'>
+            <label for='blockNum'>mins</label>
+            <br>
+            <input type='submit' value='submit change to time preferences'>
+        </form>
     </div>
 
+    <script src='optionsPage.js'></script>
 </body>
 
 </html>
