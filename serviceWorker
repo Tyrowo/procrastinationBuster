@@ -1,6 +1,10 @@
 /*
 don't need any sample code right now
 
+need button listeners to update settings
+need sync storage on install, and maybe on updating rules
+
+i still want to update the badge with a countdown if possible
 */
 
 //first we'll make a storage object for all our user settings
@@ -35,7 +39,9 @@ chrome.webNavigation.onCompleted.addListener(function () {
 chrome.runtime.onInstalled.addListener(
     function () {
         console.log('hello');
-        userInputSite('reddit.com');
+        let syncCheck = chrome.storage.sync.get(['syncCache']);
+        if (syncCheck !== undefined) siteCache = syncCheck;
+        userInputSite('reddit.com'); //test script, to be deleted once button inputs are made
         userInputSite('twitch.tv');
         chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
         //want to delete all rules just in case someone uninstalls with the blocker turned on and needs to reinstall to delete the blocks
@@ -78,6 +84,8 @@ async function userInputSite(urlString) {
     //after updating all of this we should update our siteCache ruleset too
     siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
 
+    //now update sync storage
+    chrome.storage.sync.set({ syncCache: siteCache })
     //now notify user that the site has successfully been restricted
     console.log(`successfully added site restriction for ${urlString}`);
     let restrictedSite = new NotificationClass('Site Restricted', `You have successfully restricted access to ${urlString}.`);
@@ -97,7 +105,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         //now we make a new notification
         let remainingTime = siteCache.deactivate.delayInMinutes - siteCache.closeTabs.delayInMinutes;
         let timeOver = new NotificationClass('Activating Blocker',
-            `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime}.`);
+            `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime} minute.`);
         notifyUser(timeOver);
         console.log('activating blocker');
         activateBadge();
@@ -125,7 +133,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
         //now that the rules allow for use of the website again, we notify the user that they have access again
         notifyClear('Activating Blocker'); //clear out the old notification first
-        let accessRestored = new NotificationClass('Access Restored', `Your time limit has expired, and you've regained access to your restricted site.`);
+        let accessRestored = new NotificationClass('Access Restored', `Your time limit has expired, and you've regained access to your restricted sites.`);
         notifyUser(accessRestored);
     };
 });
@@ -165,7 +173,7 @@ function deactivateBadge() {
 //and a function to start the badge saying that your time on the site is counting down
 function warningBadge() {
     chrome.action.setBadgeBackgroundColor({ color: '#FF6700' });
-    chrome.action.setBadgeText({ text: 'allowed' });
+    chrome.action.setBadgeText({ text: 'allow' });
 }
 
 
@@ -248,6 +256,9 @@ async function userRemoveSite(urlString) {
     //after removing all of this info we need to update our siteCache ruleset too, will have one fewer rule than before
     siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
 
+    //then we update our sync cache
+    chrome.storage.sync.set({ syncCache: siteCache });
+
     //now notify the user that the site has successfully been removed
     console.log(`successfully removed site restriction for ${urlString}`);
     let removedRestriction = new NotificationClass('Site Restriction Removed', `You have successfully removed your restrictions to access ${urlString}. If your blocker is currently active, you must wait for it to deactivate to access the site.`);
@@ -255,3 +266,31 @@ async function userRemoveSite(urlString) {
     //this way of removing will remove it from the ruleset, but will not be immediately accessible if restriction is currently in place
     console.log(siteCache['curRuleset']);
 };
+
+
+//now we're on to front end scripting for the options page
+
+//storage listener to receive input from options page
+chrome.storage.onChanged.addListener(function (changes) {
+    console.log(changes);
+    //show what's being changed in storage just because it helps me debug
+
+    if (changes.userInput) {
+        console.log(changes.userInput, 'new user input');
+        if (changes.userInput.newValue[0] === 'new times') {
+            console.log('found array entry', changes.userInput.newValue[1], changes.userInput.newValue[2]);
+            siteCache.closeTabs = { delayInMinutes: +changes.userInput.newValue[1] };
+            let deTime = +changes.userInput.newValue[1] + +changes.userInput.newValue[2];
+            //remember to add pluses, apparently these arrays hold strings from the form input instead of nums
+            siteCache.deactivate = { delayInMinutes: deTime };
+            //after changing the interior storage update the sync storage
+            chrome.storage.sync.set({ syncCache: siteCache });
+        }
+
+        if (changes.userInput.newValue[0] === 'new url') {
+            console.log('received new url to restrict', changes.userInput.newValue[1]);
+            userInputSite(changes.userInput.newValue[1]);
+            //should give a log and a user alert at the end of the user input site
+        }
+    }
+});
