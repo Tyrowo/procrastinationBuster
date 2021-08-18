@@ -61,7 +61,6 @@ document.getElementById('faqB5').addEventListener('click', function (e) {
         document.getElementById('faq5').style.display = 'none';
     }
 });
-
 //end of button togglers
 
 //function to make range num = range slider
@@ -81,3 +80,22 @@ document.getElementById('blockNum').addEventListener('change', function () {
     let val = document.getElementById('blockNum').value;
     document.getElementById('blockRange').value = val;
 });
+//end of range slider fns
+
+//two buttons to submit new user settings
+//using a button instead of a submit to make the page not refresh
+document.getElementById('urlSubmit').addEventListener('click', function (e) {
+    console.log(document.getElementById('url input').value);
+    makeVisible('FAQ'); //this is just to show it's working
+    //need to refresh website rules
+});
+document.getElementById('timeSubmit').addEventListener('click', function (e) {
+    let timeAllow = document.getElementById('allowRange').value;
+    let timeBlock = document.getElementById('blockRange').value;
+    chrome.storage.sync.set({ userInput: ['new times', timeAllow, timeBlock] });
+    makeVisible('FAQ'); //this is just to show it's working
+    //need to refresh website rules
+});
+
+
+//need function to populate user settings
