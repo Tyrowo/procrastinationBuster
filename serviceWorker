@@ -262,7 +262,7 @@ async function userRemoveSite(urlString) {
 
     //now notify the user that the site has successfully been removed
     console.log(`successfully removed site restriction for ${urlString}`);
-    let removedRestriction = new NotificationClass('Site Restriction Removed', `You have successfully removed your restrictions to access ${urlString}. If your blocker is currently active, you must wait for it to deactivate to access the site.`);
+    let removedRestriction = new NotificationClass('Site Restriction Removed', `You have removed your restrictions to access ${urlString}. If the blocker is currently active, wait for deactivation to access the site.`);
     notifyClear('Site Restriction Removed');
     notifyUser(removedRestriction);
     //this way of removing will remove it from the ruleset, but will not be immediately accessible if restriction is currently in place
