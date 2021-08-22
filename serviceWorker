@@ -28,13 +28,13 @@ let siteCache = {
 
 
 //this is a test oncompleted listener, when you go to test.com it triggers
-//we're testing deactivating the listener with this before there's a button to push on their user settings
+//now that our buttons work we don't need this anymore but i'll leave it up for a second
+/*
 chrome.webNavigation.onCompleted.addListener(function () {
-
-    userRemoveSite('twitch.tv');
 }, {
     url: [{ hostContains: 'test.com' }]
 })
+*/
 
 chrome.runtime.onInstalled.addListener(
     function () {
@@ -89,6 +89,7 @@ async function userInputSite(urlString) {
     //now notify user that the site has successfully been restricted
     console.log(`successfully added site restriction for ${urlString}`);
     let restrictedSite = new NotificationClass('Site Restricted', `You have successfully restricted access to ${urlString}.`);
+    notifyClear('Site Restricted');
     notifyUser(restrictedSite);
     console.log(siteCache['curRuleset']);
 };
@@ -262,6 +263,7 @@ async function userRemoveSite(urlString) {
     //now notify the user that the site has successfully been removed
     console.log(`successfully removed site restriction for ${urlString}`);
     let removedRestriction = new NotificationClass('Site Restriction Removed', `You have successfully removed your restrictions to access ${urlString}. If your blocker is currently active, you must wait for it to deactivate to access the site.`);
+    notifyClear('Site Restriction Removed');
     notifyUser(removedRestriction);
     //this way of removing will remove it from the ruleset, but will not be immediately accessible if restriction is currently in place
     console.log(siteCache['curRuleset']);
@@ -275,8 +277,10 @@ chrome.storage.onChanged.addListener(function (changes) {
     console.log(changes);
     //show what's being changed in storage just because it helps me debug
 
+    //if the changes received are a userinput then we add the website or change the time preferences
     if (changes.userInput) {
         console.log(changes.userInput, 'new user input');
+        //code for if we need to change our time settings
         if (changes.userInput.newValue[0] === 'new times') {
             console.log('found array entry', changes.userInput.newValue[1], changes.userInput.newValue[2]);
             siteCache.closeTabs = { delayInMinutes: +changes.userInput.newValue[1] };
@@ -285,12 +289,25 @@ chrome.storage.onChanged.addListener(function (changes) {
             siteCache.deactivate = { delayInMinutes: deTime };
             //after changing the interior storage update the sync storage
             chrome.storage.sync.set({ syncCache: siteCache });
+            let timePrefs = new NotificationClass('Time Preferences Set', `You've successfully updated your user settings.`);
+            notifyClear('Time Preferences Set');
+            notifyUser(timePrefs);
+
         }
 
+        //if we need to add a url we've already got the userinputsite function to handle most of that
         if (changes.userInput.newValue[0] === 'new url') {
             console.log('received new url to restrict', changes.userInput.newValue[1]);
             userInputSite(changes.userInput.newValue[1]);
             //should give a log and a user alert at the end of the user input site
         }
+    }
+
+    //if the info passed is a deletion input we remove the website in the array
+    if (changes.userDeletion) {
+        console.log(changes.userDeletion);
+        //userremovesite has all the logic we need to delete a site from our list
+        userRemoveSite(changes.userDeletion.newValue[1]);
+        console.log(`deleted website ${changes.userDeletion.newValue[1]}`)
     }
 });
