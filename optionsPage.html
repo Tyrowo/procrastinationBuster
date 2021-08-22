@@ -233,20 +233,23 @@
     <!-- user settings section-->
     <div id='User Settings' style='display: none;'>
 
-        <form action='/action_page.php'>
+        <form id='urlForm'>
             <!-- not sure what the action is supposed to be-->
             <label for='urlI'> Input a URL Domain to restrict: </label> <br>
-            <input type='text' id='url input' name='urlI'> <input type='submit' value='submit new website'>
+            <input type='text' id='url input' name='urlI'>
+            <!--<input type='submit' value='submit new website'> using a button instead of a submit to not refresh the page -->
+            <button id='urlSubmit' type='button'>submit new website</button>
             <br>
             <label for='urlI'> (i.e. "google.com" - don't include http or www) </label><br>
         </form>
         <br>
         <br>
         <form>
-            <!-- need to switch these forms from inline js to a function in the js page-->
+            <!-- can you cahnge the initial value to what's being currently stored?-->
             <label for='allowRange'>Choose how long you're allowed on your restricted sites (in minutes) </label> <br>
-            <input type='range' id='allowRange' name='allowRange' min='0' max='180' value='0'>
-            <input type='number' id='allowNum' name='allowNum' min='0' max='180' value='0'>
+            <input type='range' id='allowRange' name='allowRange' min='1' max='180' value='1'>
+            <input type='number' id='allowNum' name='allowNum' min='1' max='180' value='1'>
+            <!--min time has to be 1 or it breaks the alarms-->
             <label for='allowNum'>mins</label>
             <br>
             <label for='blockRange'>Choose how long to be blocked from restricted sites (in minutes) </label> <br>
@@ -254,8 +257,11 @@
             <input type='number' id='blockNum' name='blockNum' min='15' max='10080' step='15' value='15'>
             <label for='blockNum'>mins</label>
             <br>
-            <input type='submit' value='submit change to time preferences'>
+            <button id='timeSubmit' type='button'>submit change to time preferences</button>
         </form>
+        <br>
+        <h2> Current Restricted Websites: </h2>
+        <p id='user settings p'>This is where current settings go</p>
     </div>
 
     <script src='optionsPage.js'></script>
