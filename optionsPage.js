@@ -12,6 +12,7 @@ document.getElementById('button 3').addEventListener('click', function (e) {
 document.getElementById('button 4').addEventListener('click', function (e) {
     makeVisible('User Settings');
     populateSettings();
+
 });
 
 function makeVisible(id) {
@@ -88,7 +89,12 @@ document.getElementById('blockNum').addEventListener('change', function () {
 document.getElementById('urlSubmit').addEventListener('click', function (e) {
     let url = document.getElementById('url input').value;
     chrome.storage.sync.set({ userInput: ['new url', url] });
-    populateSettings();
+    //need to make fn wait just a second for the url to get registered before refreshing settings display
+    setTimeout(function () {
+        document.getElementById('url input').value = null;
+        makeVisible('User Settings');
+        populateSettings();
+    }, 50);
 });
 document.getElementById('timeSubmit').addEventListener('click', function (e) {
     let timeAllow = document.getElementById('allowRange').value;
@@ -104,14 +110,35 @@ function populateSettings() {
         let set = x.syncCache.dynamicIds;
         let update = '';
         for (let i = 1; i < set.length; i++) {
+            //gotta start on 1 because there's no 0th value
             if (set[i] !== null) {
-                update += `${i}. ${set[i]} <button id='delete url'> delete url </button> <br>`;
+                update += `${i}. ${set[i]} <button id='delete url' value='${set[i]}'> delete url </button> <br>`;
             }
         }
         document.getElementById('user settings p').innerHTML = update;
+        addDeleteListener(); //add listeners for delete now that there are elements w/ 'delete url'
     })
 };
 //test button to refresh the settings to see if it's working
 document.getElementById('refresh settings').addEventListener('change', function () {
+    makeVisible('User Settings');
     populateSettings();
 });
+
+
+//delete url button listener needs to pass url over to sync storage so service worker can remove it
+//can't run before user settings is populated, so needs to be passed as a function into populateSettings
+function addDeleteListener() {
+    document.getElementById('delete url').addEventListener('click', function () {
+        let ourObj = document.getElementById('delete url').value;
+        chrome.storage.sync.set({ userDeletion: ['remove url', ourObj] });
+
+        //now we just need to repopulate our list (probably after a short time delay)
+        populateSettings();
+    });
+}
+//this works
+
+//hitting an error - can't add listener to null.
+//Since this runs when the doc is created before there are any populated buttons?
+//maybe have to put this explicitly into the user settings fn
