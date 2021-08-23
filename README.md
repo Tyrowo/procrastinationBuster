@@ -1,12 +1,20 @@
 # procrastinationBuster
 
 To use this extension without downloading it from the store:
-open a new chrome tab,
+
+download the zip file from this repository and unzip it
+
+open a new chrome tab
+
 enter chrome://extensions
+
 turn on the developer mode slider in the top right corner of the screen
+
 click "load unpacked" in the top left corner of the screen
-navigate to where you downloaded this project select the folder.
-The extension should explain everything from there.
+
+navigate to where you downloaded this project and select the folder
+
+The extension will create a new tab explaining how to use the extension. i.e. how to input urls and change time settings in your user settings section of the options page
 
 __________________________________________________________________________________________
 
