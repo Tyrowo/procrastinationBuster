@@ -1,4 +1,15 @@
 # procrastinationBuster
+
+To use this extension without downloading it from the store:
+open a new chrome tab,
+enter chrome://extensions
+turn on the developer mode slider in the top right corner of the screen
+click "load unpacked" in the top left corner of the screen
+navigate to where you downloaded this project select the folder.
+The extension should explain everything from there.
+
+
+
 a chrome extension that reprimands you from going back to that website that eats up all your time.
 
 The intent for this project is to become more familiar with chrome extension development, as well as create my first real project here on github.
