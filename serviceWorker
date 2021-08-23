@@ -2,8 +2,6 @@
 don't need any sample code right now
 
 careful to use get(synccache, function) not just get syncCache
-
-lines 36 and 37, gotta get popup to populate
 */
 
 //first we'll make a storage object for all our user settings
@@ -30,8 +28,10 @@ chrome.runtime.onInstalled.addListener(
         chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
         //want to delete all rules just in case someone uninstalls with the blocker turned on and needs to reinstall to delete the blocks
 
-        //eventually we need to pull up a new tab with our options
-        //chrome.action.getPopup(); ?????
+        //if our user doesn't have any saved settings from their sync storage we pull up the options page
+        if (!syncCheck) {
+            chrome.runtime.openOptionsPage();
+        }
     });
 
 //this is our function for when a user adds a site to their banned list
