@@ -8,7 +8,7 @@ click "load unpacked" in the top left corner of the screen
 navigate to where you downloaded this project select the folder.
 The extension should explain everything from there.
 
-
+__________________________________________________________________________________________
 
 a chrome extension that reprimands you from going back to that website that eats up all your time.
 
