@@ -63,6 +63,13 @@ document.getElementById('faqB5').addEventListener('click', function (e) {
         document.getElementById('faq5').style.display = 'none';
     }
 });
+document.getElementById('faqB6').addEventListener('click', function (e) {
+    if (document.getElementById('faq6').style.display === 'none') {
+        document.getElementById('faq6').style.display = 'block';
+    } else {
+        document.getElementById('faq6').style.display = 'none';
+    }
+});
 //end of button togglers
 
 //functions to make range num = range slider
