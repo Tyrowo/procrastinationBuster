@@ -1,10 +1,9 @@
 /*
 don't need any sample code right now
 
-need button listeners to update settings
-need sync storage on install, and maybe on updating rules
+careful to use get(synccache, function) not just get syncCache
 
-i still want to update the badge with a countdown if possible
+lines 36 and 37, gotta get popup to populate
 */
 
 //first we'll make a storage object for all our user settings
@@ -13,43 +12,26 @@ let siteCache = {
     siteCount: 0,
     curRuleset: [], //this will be a list of all our rules to dynamically turn on and off
     //now two properties for our time settings
-    closeTabs: { delayInMinutes: 1 }, //default to 1
-    deactivate: { delayInMinutes: 2 } //default to 2. must be greater than CloseTabs
+    closeTabs: { delayInMinutes: 60 }, //default to 60
+    deactivate: { delayInMinutes: 1440 } //default to 1440, i.e. 1 day. this val must be greater than CloseTabs
 };
-
-//so on button click [ to update settings] we need to do some tasks
-//if there are any urls in the blocker section need to add them to the url storage
-//then if the timer settings have changed you have to change them
-//  // not sure how to validate if they're different and suggest a default setting but we'll see
-//then gotta update our onvisitarray and our to query arrays
-
-//separate on click button to delete a url
-//and refresh the list of urls which should be one shorter
-
-
-//this is a test oncompleted listener, when you go to test.com it triggers
-//now that our buttons work we don't need this anymore but i'll leave it up for a second
-/*
-chrome.webNavigation.onCompleted.addListener(function () {
-}, {
-    url: [{ hostContains: 'test.com' }]
-})
-*/
 
 chrome.runtime.onInstalled.addListener(
     function () {
         console.log('hello');
-        let syncCheck = chrome.storage.sync.get(['syncCache']);
-        if (syncCheck !== undefined) siteCache = syncCheck;
-        userInputSite('reddit.com'); //test script, to be deleted once button inputs are made
-        userInputSite('twitch.tv');
+        let syncCheck = null;
+        chrome.storage.sync.get(['syncCache'], function (x) {
+            if (x.syncCache !== undefined) {
+                syncCheck = x.syncCache.newValue;
+            }
+        });
+        if (syncCheck !== undefined && syncCheck !== null) siteCache = syncCheck.newValue;
+
         chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
         //want to delete all rules just in case someone uninstalls with the blocker turned on and needs to reinstall to delete the blocks
 
         //eventually we need to pull up a new tab with our options
-
-        //have the user pick their website to block
-        //have the option to pin the extension to the toolbar
+        //chrome.action.getPopup(); ?????
     });
 
 //this is our function for when a user adds a site to their banned list
@@ -85,7 +67,7 @@ async function userInputSite(urlString) {
     siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
 
     //now update sync storage
-    chrome.storage.sync.set({ syncCache: siteCache })
+    chrome.storage.sync.set({ syncCache: siteCache });
     //now notify user that the site has successfully been restricted
     console.log(`successfully added site restriction for ${urlString}`);
     let restrictedSite = new NotificationClass('Site Restricted', `You have successfully restricted access to ${urlString}.`);
@@ -97,7 +79,14 @@ async function userInputSite(urlString) {
 //now we have two active alarms to listen for
 chrome.alarms.onAlarm.addListener(function (alarm) {
     console.log(alarm.name);
-    //chech which alarm we're looking at
+    //check which alarm we're looking at
+    chrome.storage.sync.get(['syncCache'], function (x) {
+        if (x.syncCache !== undefined) {
+            siteCache = x.syncCache.newValue;
+        }
+    });
+    console.log(siteCache);
+    //this pulls our settings to make sure our synced storage links and times are refreshed
 
     //the first alarm kicks us out of the tabs and initiates the blocker
     if (alarm.name === 'too much time on tab') {
@@ -293,6 +282,11 @@ chrome.storage.onChanged.addListener(function (changes) {
             notifyClear('Time Preferences Set');
             notifyUser(timePrefs);
 
+            chrome.storage.sync.get(['syncCache'], function (x) {
+                if (x.syncCache !== undefined) {
+                    siteCache = x.syncCache.newValue;
+                }
+            }); //just refresh our settings just for good measure
         }
 
         //if we need to add a url we've already got the userinputsite function to handle most of that
