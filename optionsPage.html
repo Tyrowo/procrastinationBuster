@@ -108,10 +108,77 @@
 
     <button class='button button4' id='button 4'><b>User Settings</b></button>
 
+
+    <!-- instructions to use the extension -->
     <div id='Instructions' style='display: none;'>
+        <p>
+            Thanks for downloading my extension, The Procrastination Buster!
+        </p>
+        <p>
+            With the extension installed, the first thing that you'll want to do is pin the extension to your toolbar.
+            <br>
+            If you're an older Chrome user, you may have noticed that extensions no longer pop up in the toolbar
+            automatically on installation.
+            This is due to a chrome update that does not allow extensions to pin themselves anymore. Instead they are
+            all hidden in the puzzle piece icon to the right of the omnibar. <br>
+            <img src='./pinTutorial1.png' alt='pointing out the puzzle piece icon' width='700px'>
+            <img src='./pinTutorial2.png' alt='showing the pin icon in the extensions dropdown' width='300px'
+                align='right'>
+            <!--width and height?-->
+            When you click the puzzle piece icon find The Procrastination Buster, and click the pin symbol so that it is
+            filled in blue. <br>
+            <!-- width and height?-->
+            Although the extension will work whether it is pinned or not, if it is in your bar it will display whether
+            or not it is actively blocking
+            your restricted websites. You can also click the icon to view this page and change your settings.
+        </p>
+
+
+        <p>
+            <!--width, height, how to get it to block off side-->
+            With the extension pinned, it's time to choose your settings. <br>
+            (Once you read through these instructions) click the black "User Settings" button on the top right of this
+            page.
+        </p>
+        <!-- user settings page with button pointed at-->
+        <p>
+            At the top is a bar where you can input up to 10 different websites to restrict. <br>
+            For the extension to work best, input your website's domain and top-level domain into the bar and hit
+            "submit new
+            website." <br>
+            <img src='./tutorial.png' alt='user settings display' width='450px' align='right'>
+            This means instead of putting "http://www.google.com", just put "google.com". Only put in the main part of
+            your url and its .com, .org, etc tag. <br>
+            When you successfully input a new website you'll get a notification, and it should appear in the box at the
+            bottom of the page.
+        </p>
+        <p>
+            With the slider or the numerical input box, choose two timer settings: <br>
+            First, how much time you'll be allowed on your restricted websites before you're kicked off.<br>
+            The allowed time is anywhere from 1 minute to 180 minutes (3 hours) <br>
+            Then, pick how long you want to be blocked from your websites before being allowed back on. <br>
+            This can be anywhere from 15 minutes to 10080 minutes (1 week). <br>
+            For example, if you set your timer settings to the default setting of 60 minutes and 1380 minutes (23
+            hours),
+            then every time you access one of your restricted sites you'll be allowed to view them for 1 hour before
+            being
+            kicked off until the next day (a total of 24 hours after you first visited a restricted website). <br> <br>
+            Play around with it! Only you can know what the appropriate amount of internet use is for you. <br>
+
+        </p>
+        <p>
+            Finally, in the section at the bottom of the page is a list of your currently restricted websites. <br>
+            You can always click back to this user settings page to see what you have restricted. If you've made a
+            mistake entering a website's domain, or you no longer want to have it restricted, you can click the "delete
+            url" button next to any of your sites to remove it. <br>
+        </p>
+        <p>
+            It's as simple as that! Now scroll back up and click the "User Settings" button to try it out.
+
+        </p>
     </div>
 
-    <!-- about the product-->
+    <!-- about the extension. is this too weirdly sales pitchy? -->
     <div id='Info' style='display: none;'>
         <p> Thanks for using my extension! <br>
             Have you ever felt like you just need to be kept honest with your internet use?<br>
@@ -140,16 +207,15 @@
             It's as simple as that. <br>
             <br>
             I built this extension for myself because I just got sick of spending so much extra time in my day on
-            reddit.<br>
-            In the past I've allowed my internet usage habits to get the better of me, especially when pursuing
-            academics. <br>
-            So now that I'm learning how to code and trying to shift careers, I wanted to build this product as a test
+            reddit.
+            In the past I've allowed my internet usage habits to get the better of me. My habits would often get in the
+            way of my productivity completing daily tasks, and especially when pursuing academics. <br>
+            Now that I'm learning how to code and trying to shift careers, I wanted to build this product as a test
             of my skills, with the added benefit of curbing my internet habits and honing my focus. <br>
             <!-- this ending sucks, re do it.-->
-            Whereas in the past my academic endeavors have been thwarted by my internet usage habits, <br>
             I'm determined to make changes and be more successful in the future. <br>
             <br>
-            In building this product I've been able to help myself, and if it's able to help you too, I'm overjoyed.
+            In building this product I've been able to help myself. If it's able to help you too, I'm overjoyed.
             <br>
             Good luck to you in your future endeavors! <br>
             -Tyler
@@ -179,7 +245,14 @@
         <h2> <button id='faqB2'>v</button> Why isn't the extension doing anything?</h2>
         <p id='faq2' style='display: none;'> If you haven't registered any websites to your extension try doing that
             first. <br>
-            There is the possibility that your extension has become inactive for some reason, <br>
+            You should also check your User Settings and make sure that the currently restricted urls are all spelled
+            correctly,
+            and that you've only entered the website's domain instead of the full link. <br>
+            If there's an issue with the url listed, delete the current one and input the correct domain at the top of
+            the page. <br>
+
+            If you've checked that and your website is correctly listed in the user settings, there is the possibility
+            that your extension has become inactive for some reason, <br>
             <!-- might be able to fix this by just pulling up sync settings on action click-->
             so to check that try restarting the extension by going to chrome://extensions in your chrome browser,
             <br>
@@ -196,10 +269,11 @@
             to
             the
             right of the omnibar. <br>
-            <!-- need to add pic here of omnibar puzzle piece-->
+            <img src='./pinTutorial1.png' alt='pointing out the puzzle piece icon' width='700px'>
+            <img src='./pinTutorial2.png' alt='showing the pin icon in the extensions dropdown' width='300px'
+                align='right'>
             If you click the puzzle piece it should bring up a list of all of your enabled extensions. <br>
-            Find the Procrastination Buster icon
-            <!-- pic of icon--> and click the pin next to it so that it is highlighted blue.
+            Find the Procrastination Buster icon and click the pin next to it so that it is highlighted blue.
         </p>
         <!-- or just show the dropdown menu with it turned blue-->
 
@@ -247,21 +321,21 @@
         <form>
             <!-- can you cahnge the initial value to what's being currently stored?-->
             <label for='allowRange'>Choose how long you're allowed on your restricted sites (in minutes) </label> <br>
-            <input type='range' id='allowRange' name='allowRange' min='1' max='180' value='1'>
-            <input type='number' id='allowNum' name='allowNum' min='1' max='180' value='1'>
+            <input type='range' id='allowRange' name='allowRange' min='1' max='180' value='60'>
+            <input type='number' id='allowNum' name='allowNum' min='1' max='180' value='60'>
             <!--min time has to be 1 or it breaks the alarms-->
             <label for='allowNum'>mins</label>
             <br>
             <label for='blockRange'>Choose how long to be blocked from restricted sites (in minutes) </label> <br>
-            <input type='range' id='blockRange' name='blockRange' min='15' max='10080' step='15' value='15'>
-            <input type='number' id='blockNum' name='blockNum' min='15' max='10080' step='15' value='15'>
+            <input type='range' id='blockRange' name='blockRange' min='15' max='10080' step='15' value='1380'>
+            <input type='number' id='blockNum' name='blockNum' min='15' max='10080' step='15' value='1380'>
             <label for='blockNum'>mins</label>
             <br>
             <button id='timeSubmit' type='button'>submit change to time preferences</button>
         </form>
         <br>
         <h2> Current Restricted Websites: </h2>
-        <p id='user settings p'>This is where current settings go</p>
+        <p id='user settings p'>You have no restricted websites yet.</p>
     </div>
 
     <script src='optionsPage.js'></script>
