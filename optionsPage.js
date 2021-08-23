@@ -106,18 +106,21 @@ document.getElementById('timeSubmit').addEventListener('click', function (e) {
 //need function to populate user settings
 function populateSettings() {
     chrome.storage.sync.get(['syncCache'], function (x) {
-        let set = x.syncCache.dynamicIds;
-        let update = '';
-        let counter = 1;
-        for (let i = 1; i < set.length; i++) {
-            //gotta start on 1 because there's no 0th value
-            if (set[i] !== null) {
-                //create a numbered list of our restricted sites with buttons to delete them
-                update += `${counter}. ${set[i]} <button id='delete url ${[i]}' value='${set[i]}'> delete url </button> <br>`;
-                counter++;
+        if (x.syncCache !== null && x.syncCache !== undefined) {
+            let set = x.syncCache.dynamicIds;
+            let update = '';
+            let counter = 1;
+            for (let i = 1; i < set.length; i++) {
+                //gotta start on 1 because there's no 0th value
+                if (set[i] !== null) {
+                    //create a numbered list of our restricted sites with buttons to delete them
+                    update += `${counter}. ${set[i]} <button id='delete url ${[i]}' value='${set[i]}'> delete url </button> <br>`;
+                    counter++;
+                }
             }
+            if (counter > 1) document.getElementById('user settings p').innerHTML = update;
+            else document.getElementById('user settings p').innerHTML = 'You have no restricted websites.';
         }
-        document.getElementById('user settings p').innerHTML = update;
     })
 };
 
