@@ -281,12 +281,6 @@ chrome.storage.onChanged.addListener(function (changes) {
             let timePrefs = new NotificationClass('Time Preferences Set', `You've successfully updated your user settings.`);
             notifyClear('Time Preferences Set');
             notifyUser(timePrefs);
-
-            chrome.storage.sync.get(['syncCache'], function (x) {
-                if (x.syncCache !== undefined) {
-                    siteCache = x.syncCache.newValue;
-                }
-            }); //just refresh our settings just for good measure
         }
 
         //if we need to add a url we've already got the userinputsite function to handle most of that
