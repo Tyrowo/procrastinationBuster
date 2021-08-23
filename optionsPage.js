@@ -136,3 +136,11 @@ document.getElementById('user settings p').addEventListener('click', function (c
         populateSettings();
     }, 50);
 });
+
+//if we don't have any settings then we can assume the user hasn't used the extension before and 
+//needs to see the instructions.
+chrome.storage.sync.get(['syncCache'], function (x) {
+    if (!x.syncCache) {
+        makeVisible('Instructions');
+    }
+});
