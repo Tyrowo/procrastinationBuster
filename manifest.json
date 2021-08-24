@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Tyrowo's Procrastination Buster",
     "short_name": "P Buster",
-    "version": "1.00",
+    "version": "1.01",
     "version_name": "beta build",
     "action": {
         "default_popup": "optionsPage.html",
