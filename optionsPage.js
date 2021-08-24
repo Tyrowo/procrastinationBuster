@@ -90,6 +90,37 @@ document.getElementById('blockNum').addEventListener('change', function () {
 });
 //end of range slider fns
 
+//buttons to adjust slider settings for deactivation time based on non-minute times
+document.getElementById('6h').addEventListener('click', function () {
+    let val = document.getElementById('allowRange').value;
+    let newVal = 360 - val;
+    //change block range values to 6hrs - users allowed time
+    document.getElementById('blockRange').value = newVal;
+    document.getElementById('blockNum').value = newVal;
+});
+document.getElementById('12h').addEventListener('click', function () {
+    let val = document.getElementById('allowRange').value;
+    let newVal = 720 - val;
+    //change block range values to 6hrs - users allowed time
+    document.getElementById('blockRange').value = newVal;
+    document.getElementById('blockNum').value = newVal;
+});
+document.getElementById('day').addEventListener('click', function () {
+    let val = document.getElementById('allowRange').value;
+    let newVal = 1440 - val;
+    //change block range values to 6hrs - users allowed time
+    document.getElementById('blockRange').value = newVal;
+    document.getElementById('blockNum').value = newVal;
+});
+document.getElementById('week').addEventListener('click', function () {
+    let val = document.getElementById('allowRange').value;
+    let newVal = 10080 - val;
+    //change block range values to 6hrs - users allowed time
+    document.getElementById('blockRange').value = newVal;
+    document.getElementById('blockNum').value = newVal;
+});
+//end of deactivation buttons
+
 //two buttons to submit new user settings
 //using a button instead of a submit to make the page not refresh
 document.getElementById('urlSubmit').addEventListener('click', function (e) {
