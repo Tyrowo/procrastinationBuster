@@ -1,7 +1,10 @@
 /*
-don't need any sample code right now
-
 careful to use get(synccache, function) not just get syncCache
+trying to test .get space
+        console.log('results of sync storage fn inside user input site fn', x, x.syncCache);
+        console.log('x is undefined', x);
+        console.log('x.synccache', x.syncCache);
+        console.log('x.syncCache.newValue', x.syncCache.newValue);
 */
 
 //first we'll make a storage object for all our user settings
@@ -19,8 +22,10 @@ chrome.runtime.onInstalled.addListener(
         console.log('hello');
         let syncCheck = null;
         chrome.storage.sync.get(['syncCache'], function (x) {
-            if (x.syncCache !== undefined) {
-                syncCheck = x.syncCache.newValue;
+            if (x.syncCache) {
+                if (x.syncCache.newValue !== undefined) { //this will hit an error on the first input site but still work lol
+                    siteCache = x.syncCache.newValue;
+                }
             }
         });
         if (syncCheck !== undefined && syncCheck !== null) siteCache = syncCheck.newValue;
@@ -36,12 +41,22 @@ chrome.runtime.onInstalled.addListener(
 
 //this is our function for when a user adds a site to their banned list
 async function userInputSite(urlString) {
+    //should refresh the site cache before doing anything
+    chrome.storage.sync.get(['syncCache'], function (x) {
+        if (x.syncCache) {
+            if (x.syncCache.newValue) { //this will hit an error on the first input site but still work lol
+                siteCache = x.syncCache.newValue;
+            }
+        }
+    });
+    console.log('siteCache is this right now:', siteCache);
     //check if userinput urlstring is already a rule in our dictionary
     if (urlString in siteCache) return;
     //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
     if (siteCache['siteCount'] >= 10) {
         let sitesMaxxed = new NotificationClass('Too Many Restricted Sites', 'The maximum amount of allowed site restrictions are 10. Please delete one or more of your current site restrictions to add new ones.');
         notifyUser(sitesMaxxed);
+        return;
     }
     //first add site listener
     //logic to turn our listener registration function in to a named function, and then add the listener
@@ -81,8 +96,10 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     console.log(alarm.name);
     //check which alarm we're looking at
     chrome.storage.sync.get(['syncCache'], function (x) {
-        if (x.syncCache !== undefined) {
-            siteCache = x.syncCache.newValue;
+        if (x.syncCache) {
+            if (x.syncCache.newValue) { //this will hit an error on the first input site but still work lol
+                siteCache = x.syncCache.newValue;
+            }
         }
     });
     console.log(siteCache);
@@ -268,7 +285,7 @@ chrome.storage.onChanged.addListener(function (changes) {
 
     //if the changes received are a userinput then we add the website or change the time preferences
     if (changes.userInput) {
-        console.log(changes.userInput, 'new user input');
+        console.log('new user input:', changes.userInput);
         //code for if we need to change our time settings
         if (changes.userInput.newValue[0] === 'new times') {
             console.log('found array entry', changes.userInput.newValue[1], changes.userInput.newValue[2]);
