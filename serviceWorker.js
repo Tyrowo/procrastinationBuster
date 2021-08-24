@@ -1,12 +1,3 @@
-/*
-careful to use get(synccache, function) not just get syncCache
-trying to test .get space
-        console.log('results of sync storage fn inside user input site fn', x, x.syncCache);
-        console.log('x is undefined', x);
-        console.log('x.synccache', x.syncCache);
-        console.log('x.syncCache.newValue', x.syncCache.newValue);
-*/
-
 //first we'll make a storage object for all our user settings
 let siteCache = {
     dynamicIds: ['no 0th id', null, null, null, null, null, null, null, null, null, null],
@@ -44,7 +35,9 @@ async function userInputSite(urlString) {
     //should refresh the site cache before doing anything
     chrome.storage.sync.get(['syncCache'], function (x) {
         if (x.syncCache) {
+            console.log(x.syncCache);
             if (x.syncCache.newValue) { //this will hit an error on the first input site but still work lol
+                console.log(x.syncCache.newValue);
                 siteCache = x.syncCache.newValue;
             }
         }
