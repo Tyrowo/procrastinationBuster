@@ -16,7 +16,6 @@ document.getElementById('button 4').addEventListener('click', function (e) {
 });
 
 function makeVisible(id) {
-    console.log('is this working?');
     document.getElementById('FAQ').style.display = 'none';
     document.getElementById('Instructions').style.display = 'none';
     document.getElementById('User Settings').style.display = 'none';
