@@ -101,7 +101,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
             //now we make a new notification
             let remainingTime = siteCache.deactivate.delayInMinutes - siteCache.closeTabs.delayInMinutes;
             let timeOver = new NotificationClass('Activating Blocker',
-                `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime} minute.`);
+                `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime} minutes.`);
             notifyUser(timeOver);
             console.log('activating blocker');
             activateBadge();
