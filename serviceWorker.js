@@ -143,20 +143,25 @@ function triggerOnCompleted(details) {
     console.log(details);
     if (details.frameId !== 0) return;
 
-    //need to clear notifications left over from the last cycle of banning
-    notifyClear('Access Restored');
-    //to create a notification we create a new member of our class and pass that into the notify function
-    let siteVisited = new NotificationClass('You have accessed a restricted site', `You will be allowed ${siteCache.closeTabs.delayInMinutes} minutes until you are kicked off of all restricted sites.`);
-    //we notify the user and initiate a warning badge
-    notifyUser(siteVisited);
-    warningBadge();
-    console.log('warning initiated, setting alarms');
-    //here we've got to add two timers:
-    //timer to boot you out of the reddit tab after x time
-    chrome.alarms.create(name = 'too much time on tab', siteCache.closeTabs);
-    //then we need another alarm to turn the ruleset back off
-    chrome.alarms.create(name = 'active ruleset timer', siteCache.deactivate);
-    console.log('both alarms successfully set');
+    //now we should refresh our cache to make sure that our time settings are correct before adding alarms
+    refreshCache();
+    setTimeout(function () {
+
+        //need to clear notifications left over from the last cycle of banning
+        notifyClear('Access Restored');
+        //to create a notification we create a new member of our class and pass that into the notify function
+        let siteVisited = new NotificationClass('You have accessed a restricted site', `You will be allowed ${siteCache.closeTabs.delayInMinutes} minutes until you are kicked off of all restricted sites.`);
+        //we notify the user and initiate a warning badge
+        notifyUser(siteVisited);
+        warningBadge();
+        console.log('warning initiated, setting alarms');
+        //here we've got to add two timers:
+        //timer to boot you out of the reddit tab after x time
+        chrome.alarms.create(name = 'too much time on tab', siteCache.closeTabs);
+        //then we need another alarm to turn the ruleset back off
+        chrome.alarms.create(name = 'active ruleset timer', siteCache.deactivate);
+        console.log('both alarms successfully set');
+    }, 10);
 };
 
 //and here are two functions to turn on or off the badge
@@ -307,6 +312,7 @@ chrome.storage.onChanged.addListener(function (changes) {
     }
 });
 
+//a function to refresh the cache of our extension and make sure we're using the correct sync data
 async function refreshCache() {
     chrome.storage.sync.get(['syncCache'], function (x) {
         if (x.syncCache) {
