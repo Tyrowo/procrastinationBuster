@@ -86,54 +86,53 @@ async function userInputSite(urlString) {
 chrome.alarms.onAlarm.addListener(function (alarm) {
     console.log(alarm.name);
     //check which alarm we're looking at
-    chrome.storage.sync.get(['syncCache'], function (x) {
-        if (x.syncCache) {
-            if (x.syncCache.newValue) { //this will hit an error on the first input site but still work lol
-                siteCache = x.syncCache.newValue;
-            }
-        }
-    });
-    console.log(siteCache);
-    //this pulls our settings to make sure our synced storage links and times are refreshed
 
-    //the first alarm kicks us out of the tabs and initiates the blocker
-    if (alarm.name === 'too much time on tab') {
-        //first clear out our old notification
-        notifyClear('You have accessed a restricted site');
-        //now we make a new notification
-        let remainingTime = siteCache.deactivate.delayInMinutes - siteCache.closeTabs.delayInMinutes;
-        let timeOver = new NotificationClass('Activating Blocker',
-            `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime} minute.`);
-        notifyUser(timeOver);
-        console.log('activating blocker');
-        activateBadge();
-        //we can use the storaged ruleset in our object to enable and disable
-        console.log(siteCache['curRuleset']);
-        chrome.declarativeNetRequest.updateDynamicRules({ addRules: siteCache['curRuleset'] }); //update dynamic rules takes an object with addRules &/or removeRuleIds
-        //on this alarm activating we want to query whether we have any open tabs of the problem website
-        let queryArray = mapObjectsToQuery(siteCache['dynamicIds'])
-        queryArray.forEach(url => //by acting on an array of url codes we can close the tabs of all of them
-            chrome.tabs.query(url) //this returns a promise with all the problem urls. doesn't need Return prefix inside the forEach
-                .then((tabs) => {
-                    if (!tabs.length) return; //exit if we don't have any tabs found from the query
+    //gonna use our alarm listeners to refresh our site cache
+    refreshCache();
+    setTimeout(function () {
 
-                    let map = tabs.map(t => t.id); // this creates a list of ids
-                    chrome.tabs.remove(map); //close the tabs found
-                    console.log('tabs from map successfully closed');
-                }));
-    };
-    //the second alarm deactivates the blocker
-    if (alarm.name === 'active ruleset timer') {
-        //with the alarm triggered then we want to deactivate the ruleset again
-        console.log('deactivating blocker');
-        //instead of just a console log maybe we give a notification here
-        deactivateBadge();
-        chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
-        //now that the rules allow for use of the website again, we notify the user that they have access again
-        notifyClear('Activating Blocker'); //clear out the old notification first
-        let accessRestored = new NotificationClass('Access Restored', `Your time limit has expired, and you've regained access to your restricted sites.`);
-        notifyUser(accessRestored);
-    };
+        console.log(siteCache);
+        //this pulls our settings to make sure our synced storage links and times are refreshed
+
+        //the first alarm kicks us out of the tabs and initiates the blocker
+        if (alarm.name === 'too much time on tab') {
+            //first clear out our old notification
+            notifyClear('You have accessed a restricted site');
+            //now we make a new notification
+            let remainingTime = siteCache.deactivate.delayInMinutes - siteCache.closeTabs.delayInMinutes;
+            let timeOver = new NotificationClass('Activating Blocker',
+                `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime} minute.`);
+            notifyUser(timeOver);
+            console.log('activating blocker');
+            activateBadge();
+            //we can use the storaged ruleset in our object to enable and disable
+            console.log(siteCache['curRuleset']);
+            chrome.declarativeNetRequest.updateDynamicRules({ addRules: siteCache['curRuleset'] }); //update dynamic rules takes an object with addRules &/or removeRuleIds
+            //on this alarm activating we want to query whether we have any open tabs of the problem website
+            let queryArray = mapObjectsToQuery(siteCache['dynamicIds'])
+            queryArray.forEach(url => //by acting on an array of url codes we can close the tabs of all of them
+                chrome.tabs.query(url) //this returns a promise with all the problem urls. doesn't need Return prefix inside the forEach
+                    .then((tabs) => {
+                        if (!tabs.length) return; //exit if we don't have any tabs found from the query
+
+                        let map = tabs.map(t => t.id); // this creates a list of ids
+                        chrome.tabs.remove(map); //close the tabs found
+                        console.log('tabs from map successfully closed');
+                    }));
+        };
+        //the second alarm deactivates the blocker
+        if (alarm.name === 'active ruleset timer') {
+            //with the alarm triggered then we want to deactivate the ruleset again
+            console.log('deactivating blocker');
+            //instead of just a console log maybe we give a notification here
+            deactivateBadge();
+            chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80] });
+            //now that the rules allow for use of the website again, we notify the user that they have access again
+            notifyClear('Activating Blocker'); //clear out the old notification first
+            let accessRestored = new NotificationClass('Access Restored', `Your time limit has expired, and you've regained access to your restricted sites.`);
+            notifyUser(accessRestored);
+        };
+    }, 10);
 });
 
 //splitting the onCompleted listener logic into its own function to create new listeners every time a user
