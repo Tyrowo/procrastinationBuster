@@ -33,55 +33,53 @@ chrome.runtime.onInstalled.addListener(
 //this is our function for when a user adds a site to their banned list
 async function userInputSite(urlString) {
     //should refresh the site cache before doing anything
-    chrome.storage.sync.get(['syncCache'], function (x) {
-        if (x.syncCache) {
-            console.log(x.syncCache);
-            if (x.syncCache.newValue) { //this will hit an error on the first input site but still work lol
-                console.log(x.syncCache.newValue);
-                siteCache = x.syncCache.newValue;
-            }
+    console.log('siteCache before refresh', siteCache);
+    refreshCache()
+    setTimeout(function () {
+
+
+        console.log('siteCache is this right now:', siteCache);
+        //check if userinput urlstring is already a rule in our dictionary
+        if (urlString in siteCache) return;
+        //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
+        if (siteCache['siteCount'] >= 10) {
+            let sitesMaxxed = new NotificationClass('Too Many Restricted Sites', 'The maximum amount of allowed site restrictions are 10. Please delete one or more of your current site restrictions to add new ones.');
+            notifyUser(sitesMaxxed);
+            return;
         }
-    });
-    console.log('siteCache is this right now:', siteCache);
-    //check if userinput urlstring is already a rule in our dictionary
-    if (urlString in siteCache) return;
-    //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
-    if (siteCache['siteCount'] >= 10) {
-        let sitesMaxxed = new NotificationClass('Too Many Restricted Sites', 'The maximum amount of allowed site restrictions are 10. Please delete one or more of your current site restrictions to add new ones.');
-        notifyUser(sitesMaxxed);
-        return;
-    }
-    //first add site listener
-    //logic to turn our listener registration function in to a named function, and then add the listener
-    var newListener = function (details) {
-        triggerOnCompleted(details);
-    };
-    chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
-
-    //gotta get the first null value in the array
-    for (let i = 1; i < siteCache['dynamicIds'].length; i++) { //start at 1 because 0 should never be null
-        if (siteCache['dynamicIds'][i] === null) { //find null value
-            siteCache['dynamicIds'][i] = urlString;
-            console.log('set idNumber to ', i);
-            break;
+        //first add site listener
+        //logic to turn our listener registration function in to a named function, and then add the listener
+        var newListener = function (details) {
+            triggerOnCompleted(details);
         };
-    };
-    //then we need to update our dictionary.
-    //add url and paired function to restricted sites dictionary, increment our site count
-    siteCache[urlString] = newListener;
-    siteCache['siteCount']++;
+        chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
 
-    //after updating all of this we should update our siteCache ruleset too
-    siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
+        //gotta get the first null value in the array
+        for (let i = 1; i < siteCache['dynamicIds'].length; i++) { //start at 1 because 0 should never be null
+            if (siteCache['dynamicIds'][i] === null) { //find null value
+                siteCache['dynamicIds'][i] = urlString;
+                console.log('set idNumber to ', i);
+                break;
+            };
+        };
+        //then we need to update our dictionary.
+        //add url and paired function to restricted sites dictionary, increment our site count
+        siteCache[urlString] = newListener;
+        siteCache['siteCount']++;
 
-    //now update sync storage
-    chrome.storage.sync.set({ syncCache: siteCache });
-    //now notify user that the site has successfully been restricted
-    console.log(`successfully added site restriction for ${urlString}`);
-    let restrictedSite = new NotificationClass('Site Restricted', `You have successfully restricted access to ${urlString}.`);
-    notifyClear('Site Restricted');
-    notifyUser(restrictedSite);
-    console.log(siteCache['curRuleset']);
+        //after updating all of this we should update our siteCache ruleset too
+        siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
+
+        //now update sync storage
+        chrome.storage.sync.set({ syncCache: siteCache });
+        //now notify user that the site has successfully been restricted
+        console.log(`successfully added site restriction for ${urlString}`);
+        let restrictedSite = new NotificationClass('Site Restricted', `You have successfully restricted access to ${urlString}.`);
+        notifyClear('Site Restricted');
+        notifyUser(restrictedSite);
+        console.log(siteCache['curRuleset']);
+
+    }, 10);
 };
 
 //now we have two active alarms to listen for
@@ -309,3 +307,12 @@ chrome.storage.onChanged.addListener(function (changes) {
         console.log(`deleted website ${changes.userDeletion.newValue[1]}`)
     }
 });
+
+async function refreshCache() {
+    chrome.storage.sync.get(['syncCache'], function (x) {
+        if (x.syncCache) {
+            console.log('inside if statement in sync.get', x.syncCache);
+            siteCache = x.syncCache;
+        }
+    });
+};
