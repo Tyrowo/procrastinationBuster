@@ -31,6 +31,7 @@
         "storage",
         "alarms",
         "webNavigation",
-        "notifications"
+        "notifications",
+        "idle"
     ]
 }
