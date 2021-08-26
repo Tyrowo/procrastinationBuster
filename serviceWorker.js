@@ -321,3 +321,20 @@ async function refreshCache() {
         }
     });
 };
+
+//ok we need a listener for when the machine goes back to being active to refresh our listeners
+chrome.idle.onStateChanged.addListener(function (idleState) {
+    console.log(idleState);
+    //now we need to refresh our listeners? 
+    //first get a list of our dynamic ids by refreshing our cache and pulling it from siteCache
+    refreshCache();
+    let tempArr = siteCache[dynamicIds];
+    //then we need to wipe out all our stored values so that we don't duplicate them
+    for (let i = 1; i < tempArr.length; i++) {
+        userRemoveSite(tempArr[i]);
+    };
+    //after wiping out our settings now we rebuild them from scratch to get the listeners back online
+    for (let i = 1; i < tempArr.length; i++) {
+        userInputSite(tempArr[i]);
+    };
+});
