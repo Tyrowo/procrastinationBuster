@@ -157,6 +157,15 @@ function populateSettings() {
             }
             if (counter > 1) document.getElementById('user settings p').innerHTML = update;
             else document.getElementById('user settings p').innerHTML = 'You have no restricted websites.';
+
+            //then after the url settings are populated I want this to populate our timer settings too
+            let allowT = x.syncCache.closeTabs.delayInMinutes;
+            let deacT = x.syncCache.deactivate.delayInMinutes;
+            let blockT = deacT - allowT;
+            document.getElementById('allowRange').value = allowT;
+            document.getElementById('allowNum').value = allowT;
+            document.getElementById('blockRange').value = blockT;
+            document.getElementById('blockNum').value = blockT;
         }
     })
 };
