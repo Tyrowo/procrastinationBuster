@@ -350,8 +350,8 @@
         <form>
             <!-- can you cahnge the initial value to what's being currently stored?-->
             <label for='allowRange'>Choose how long you're allowed on your restricted sites (in minutes) </label> <br>
-            <input type='range' id='allowRange' name='allowRange' min='1' max='180' value='60'>
-            <input type='number' id='allowNum' name='allowNum' min='1' max='180' value='60'>
+            <input type='range' id='allowRange' name='allowRange' min='1' max='180' step='1' value='60'>
+            <input type='number' id='allowNum' name='allowNum' min='1' max='180' step='1' value='60'>
             <!--min time has to be 1 or it breaks the alarms-->
             <label for='allowNum'>mins</label>
             <br>
@@ -359,6 +359,8 @@
             <input type='range' id='blockRange' name='blockRange' min='15' max='10080' step='15' value='1380'>
             <input type='number' id='blockNum' name='blockNum' min='15' max='10080' step='15' value='1380'>
             <label for='blockNum'>mins</label>
+            <button id='h' type='button'>per hour</button>
+            <button id='3h' type='button'>per 3hrs</button>
             <button id='6h' type='button'>per 6hrs</button>
             <button id='12h' type='button'> per 12hrs</button>
             <button id='day' type='button'> per day </button>
