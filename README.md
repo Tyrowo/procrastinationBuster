@@ -2,7 +2,7 @@
 
 To use this extension without downloading it from the store:
 
-download the zip file from this repository and unzip it
+click the green code button on the repository, download the zip file from this repository and unzip it
 
 open a new chrome tab
 
