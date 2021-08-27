@@ -91,6 +91,22 @@ document.getElementById('blockNum').addEventListener('change', function () {
 //end of range slider fns
 
 //buttons to adjust slider settings for deactivation time based on non-minute times
+document.getElementById('h').addEventListener('click', function () {
+    let val = document.getElementById('allowRange').value;
+    let newVal = 60 - val;
+    if (newVal <= 0) newVal = 15;
+    //change block range values to 6hrs - users allowed time
+    document.getElementById('blockRange').value = newVal;
+    document.getElementById('blockNum').value = newVal;
+});
+document.getElementById('3h').addEventListener('click', function () {
+    let val = document.getElementById('allowRange').value;
+    let newVal = 180 - val;
+    if (newVal <= 0) newVal = 15;
+    //change block range values to 6hrs - users allowed time
+    document.getElementById('blockRange').value = newVal;
+    document.getElementById('blockNum').value = newVal;
+});
 document.getElementById('6h').addEventListener('click', function () {
     let val = document.getElementById('allowRange').value;
     let newVal = 360 - val;
