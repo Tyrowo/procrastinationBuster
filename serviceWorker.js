@@ -37,10 +37,16 @@ async function userInputSite(urlString) {
     refreshCache()
     setTimeout(function () {
 
-
         console.log('siteCache is this right now:', siteCache);
         //check if userinput urlstring is already a rule in our dictionary
-        if (urlString in siteCache) return;
+        if (siteCache.dynamicIds.indexOf(urlString) > -1) {
+            console.log('hit duplicate url');
+            let urlDupe = new NotificationClass('Duplicate URL', `You already have ${urlString} in your list of restricted URLs.`)
+            notifyClear('urlDupe');
+            notifyClear('Site Restricted');
+            notifyUser(urlDupe);
+            return;
+        }
         //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
         if (siteCache['siteCount'] >= 10) {
             let sitesMaxxed = new NotificationClass('Too Many Restricted Sites', 'The maximum amount of allowed site restrictions are 10. Please delete one or more of your current site restrictions to add new ones.');
@@ -239,35 +245,44 @@ function createDynamicRuleset(urlArray) {
 
 //this is our function for when a user removes a site from their restricted list
 async function userRemoveSite(urlString) {
-    //check if userinput urlstring is already a rule in our dictionary
-    if (!(urlString in siteCache)) return; // this shouldn't ever happen, because the button should supply the urlstring
-    //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
+    //first let's refresh the cache to be safe
+    refreshCache();
+    setTimeout(function () {
 
-    //first remove the site listener
-    //our listener function's name is saved in our site cache
-    console.log('deleting listener');
-    chrome.webNavigation.onCompleted.removeListener(siteCache[urlString]);
+        //check if userinput urlstring is already a rule in our dictionary
+        if (siteCache.dynamicIds.indexOf(urlString) == -1) {
+            console.log(`${urlString} not found in dynamicIds, could not be deleted.`)
+            return;
+        };
+        //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
 
-    //gotta find the site in the array and nullify it
-    console.log(siteCache['dynamicIds'],);
-    let idNumber = siteCache['dynamicIds'].indexOf(urlString);
-    siteCache['dynamicIds'][idNumber] = null;
-    //then we need to remove it from our dictionary and decrement our site count
-    delete siteCache[urlString];
-    siteCache['siteCount']--;
-    //after removing all of this info we need to update our siteCache ruleset too, will have one fewer rule than before
-    siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
+        //first remove the site listener
+        //our listener function's name is saved in our site cache
+        console.log('deleting listener');
+        chrome.webNavigation.onCompleted.removeListener(siteCache[urlString]);
 
-    //then we update our sync cache
-    chrome.storage.sync.set({ syncCache: siteCache });
+        //gotta find the site in the array and nullify it
+        console.log(siteCache['dynamicIds'],);
+        let idNumber = siteCache['dynamicIds'].indexOf(urlString);
+        siteCache['dynamicIds'][idNumber] = null;
+        //then we need to remove it from our dictionary and decrement our site count
+        delete siteCache[urlString];
+        siteCache['siteCount']--;
+        //after removing all of this info we need to update our siteCache ruleset too, will have one fewer rule than before
+        siteCache['curRuleset'] = createDynamicRuleset(siteCache['dynamicIds']);
 
-    //now notify the user that the site has successfully been removed
-    console.log(`successfully removed site restriction for ${urlString}`);
-    let removedRestriction = new NotificationClass('Site Restriction Removed', `You have removed your restrictions to access ${urlString}. If the blocker is currently active, wait for deactivation to access the site.`);
-    notifyClear('Site Restriction Removed');
-    notifyUser(removedRestriction);
-    //this way of removing will remove it from the ruleset, but will not be immediately accessible if restriction is currently in place
-    console.log(siteCache['curRuleset']);
+        //then we update our sync cache
+        chrome.storage.sync.set({ syncCache: siteCache });
+
+        //now notify the user that the site has successfully been removed
+        console.log(`successfully removed site restriction for ${urlString}`);
+        let removedRestriction = new NotificationClass('Site Restriction Removed', `You have removed your restrictions to access ${urlString}. If the blocker is currently active, wait for deactivation to access the site.`);
+        notifyClear('Site Restriction Removed');
+        notifyUser(removedRestriction);
+        //this way of removing will remove it from the ruleset, but will not be immediately accessible if restriction is currently in place
+        console.log(siteCache['curRuleset']);
+
+    }, 10);
 };
 
 
@@ -325,16 +340,34 @@ async function refreshCache() {
 //ok we need a listener for when the machine goes back to being active to refresh our listeners
 chrome.idle.onStateChanged.addListener(function (idleState) {
     console.log(idleState);
-    //now we need to refresh our listeners? 
-    //first get a list of our dynamic ids by refreshing our cache and pulling it from siteCache
-    refreshCache();
-    let tempArr = siteCache[dynamicIds];
-    //then we need to wipe out all our stored values so that we don't duplicate them
-    for (let i = 1; i < tempArr.length; i++) {
-        userRemoveSite(tempArr[i]);
-    };
-    //after wiping out our settings now we rebuild them from scratch to get the listeners back online
-    for (let i = 1; i < tempArr.length; i++) {
-        userInputSite(tempArr[i]);
+    //don't want a notification, it's obnoxious, but a console log will let us know when it idles
+    //not sure if we only need to refresh our listeners when the idlestate goes to active,
+    //because users can't access sites while they're inactive
+    if (idleState === 'active') {
+
+        refreshCache();
+        setTimeout(function () {
+
+            for (let i = 1; i < siteCache.dynamicIds.length; i++) {
+                let urlString = siteCache.dynamicIds[i];
+
+                if (urlString !== null) {
+                    console.log(`refreshing listener for ${urlString}`)
+                    //first we remove the listener
+                    chrome.webNavigation.onCompleted.removeListener(siteCache[urlString]);
+                    //then we add it with the same function it should be the same? 
+                    var newListener = function (details) {
+                        triggerOnCompleted(details);
+                    };
+                    chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
+                    //then we need to update our site settings in our cache to make sure the listener function matches
+                    siteCache[urlString] = newListener;
+                }
+            };
+            console.log('url listeners have been refreshed. refreshing storage.')
+            //and finally after all of those listeners have been replaced, we update our sync storage
+            chrome.storage.sync.set({ syncCache: siteCache });
+
+        }, 20);
     };
 });
