@@ -254,7 +254,11 @@ async function userRemoveSite(urlString) {
             console.log(`${urlString} not found in dynamicIds, could not be deleted.`)
             return;
         };
-        //now we have to check if we have too many sites in our cache- I don't want to overload the chrome ruleset maximum
+        //check if the userinput is null
+        if (urlString === null) {
+            console.log(`cannot delete null, but that's okay. :) `)
+            return;
+        };
 
         //first remove the site listener
         //our listener function's name is saved in our site cache
