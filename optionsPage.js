@@ -191,6 +191,8 @@ document.getElementById('user settings p').addEventListener('click', function (c
     //can pass the event object into the function
     //the .target gets the origin of the event object, which is our button. Then get the value from that
     let value = clickedButton.target.value;
+    //first check the edge case that the value is not null, because the container itself will pass a null value
+    if (value === null) return;
     //then pass that value over to our storage so that the service worker can react to it
     chrome.storage.sync.set({ userDeletion: ['remove url', value] });
     //need to delay the repopulation so that the url can finish being removed in the service worker
