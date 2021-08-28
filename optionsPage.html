@@ -33,6 +33,10 @@
             font-size: 18px;
         }
 
+        img {
+            padding: 10px;
+        }
+
         .button {
             background-color: #07D669;
             font-family: 'Tyro Inked';
@@ -122,7 +126,7 @@
             automatically on installation.
             This is due to a chrome update that does not allow extensions to pin themselves anymore. Instead they are
             all hidden in the puzzle piece icon to the right of the omnibar. <br>
-            <img src='./pinTutorial1.png' alt='pointing out the puzzle piece icon' width='700px'> <br>
+            <img src='./pinTutorial1.png' alt='pointing out the puzzle piece icon' width='660px'> <br>
             <img src='./pinTutorial2.png' alt='showing the pin icon in the extensions dropdown' width='300px'
                 align='left'>
             <!--width and height?-->
@@ -262,16 +266,31 @@
             and
             turn
             it on again.
+            <img src='./deactivateExtension.png' alt='showing the extension menu toggle on/off button' width='400px'
+                align='left'>
         </p>
-        <!-- pic of chrome extension page-->
+        <h2> <button id='faqB3'>v</button> Why is the extension activating on every website I go to?</h2>
+        <p id='faq3' style='display: none;'>
+            Because of the way extension programs have to reactivate, sometimes they can behave a little buggy when they
+            start back up. <br>
+            I'm working on a cleaner fix to this, but noticed that sometimes after letting your computer fall asleep,
+            the extension started triggering on every website instead of just the restricted urls.<br>
+            <img src='./deactivateExtension.png' alt='showing the extension menu toggle on/off button' width='400px'
+                align='left'>
+            To solve this restart the extension by going to chrome://extensions in your chrome browser, find
+            the Procrastination Buster in your list of extensions, and click the slider twice to turn it off and on
+            again (gray is off, blue is on). <br>
+            The extension should remember your url settings and only trigger on the correct sites now. <br>
 
-        <h2> <button id='faqB3'>v</button> Why can't I see the extension icon in chrome?</h2>
-        <p id='faq3' style='display: none;'> Chrome recently updated their extensions hiding all newly installed
+        </p>
+
+        <h2> <button id='faqB4'>v</button> Why can't I see the extension icon in chrome?</h2>
+        <p id='faq4' style='display: none;'> Chrome recently updated their extensions hiding all newly installed
             extensions in the puzzle piece icon
             to
             the
             right of the omnibar. <br>
-            <img src='./pinTutorial1.png' alt='pointing out the puzzle piece icon' width='700px'>
+            <img src='./pinTutorial1.png' alt='pointing out the puzzle piece icon' width='660px'>
             <img src='./pinTutorial2.png' alt='showing the pin icon in the extensions dropdown' width='300px'
                 align='right'>
             If you click the puzzle piece it should bring up a list of all of your enabled extensions. <br>
@@ -279,8 +298,8 @@
         </p>
         <!-- or just show the dropdown menu with it turned blue-->
 
-        <h2> <button id='faqB4'>v</button> When my websites are blocked where can I see how much time I have left?</h2>
-        <p id='faq4' style='display: none;'> Unfortunately this was a feature planned during development, to have the
+        <h2> <button id='faqB5'>v</button> When my websites are blocked where can I see how much time I have left?</h2>
+        <p id='faq5' style='display: none;'> Unfortunately this was a feature planned during development, to have the
             'active' badge on the extension icon display how much time was remaining before you could access your site.
             <br>
             The feature was too consumptive on memory and demanding of the browser, so this feature was foregone, and
@@ -290,11 +309,11 @@
         </p>
         <!--don't know if i'm going to incorporate this feature-->
 
-        <h2> <button id='faqB5'>v</button> I uninstalled my extension in the middle of a block period, and now my
+        <h2> <button id='faqB6'>v</button> I uninstalled my extension in the middle of a block period, and now my
             restricted sites are blocked
             forever??
         </h2>
-        <p id='faq5' style='display: none;'> Well, that's what you get for cheating yourself! <br>
+        <p id='faq6' style='display: none;'> Well, that's what you get for cheating yourself! <br>
             Just kidding lol <br>
             This error was encountered during testing and a fix was implemented into the installation code. <br>
             All you have to do is reinstall the Procrastination Buster extension, which will clear all of your
@@ -304,9 +323,9 @@
             <br>
             You should be able to browse regularly.
         </p>
-        <h2> <button id='faqB6'>v</button> Did you really make all this yourself??
+        <h2> <button id='faqB7'>v</button> Did you really make all this yourself??
         </h2>
-        <p id='faq6' style='display: block;'>
+        <p id='faq7' style='display: block;'>
             Yes!! <br>
             This is my first real coding project, and I built it primarily by reading through chrome extension and
             Mozilla Javascript documentation. <br>
