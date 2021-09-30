@@ -341,37 +341,48 @@ async function refreshCache() {
     });
 };
 
-//ok we need a listener for when the machine goes back to being active to refresh our listeners
+//when the user goes active I want to refresh an interval that will periodically refresh our listeners, 
+//which will keep our page blocker active throughout internet use
 chrome.idle.onStateChanged.addListener(function (idleState) {
     console.log(idleState);
-    //don't want a notification, it's obnoxious, but a console log will let us know when it idles
-    //not sure if we only need to refresh our listeners when the idlestate goes to active,
-    //because users can't access sites while they're inactive
+    //don't want a notification to the user, it's obnoxious, but a console log will let us know when it idles
+    //whenever the user goes active I want them to refresh their listeners, and then periodicall refresh
     if (idleState === 'active') {
-
-        refreshCache();
-        setTimeout(function () {
-
-            for (let i = 1; i < siteCache.dynamicIds.length; i++) {
-                let urlString = siteCache.dynamicIds[i];
-
-                if (urlString !== null) {
-                    console.log(`refreshing listener for ${urlString}`)
-                    //first we remove the listener
-                    chrome.webNavigation.onCompleted.removeListener(siteCache[urlString]);
-                    //then we add it with the same function it should be the same? 
-                    var newListener = function (details) {
-                        triggerOnCompleted(details);
-                    };
-                    chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
-                    //then we need to update our site settings in our cache to make sure the listener function matches
-                    siteCache[urlString] = newListener;
-                }
-            };
-            console.log('url listeners have been refreshed. refreshing storage.')
-            //and finally after all of those listeners have been replaced, we update our sync storage
-            chrome.storage.sync.set({ syncCache: siteCache });
-
-        }, 20);
+        refreshListeners(); //initially refresh
+        setInterval(function () { refreshListeners() }, 300000); //30000 = 1000*60*5, continue to refresh every 5 minutes
     };
+
+    //just to be safe I want to clear this interval when we go inactive so we don't have a million.
+    if (idleState === 'inactive') {
+        clearInterval(refreshListeners());
+    }
 });
+
+//moving the logic of refreshing the listeners into its own function so that we can create a more resilient
+//set interval function above
+function refreshListeners() {
+
+    refreshCache();
+    setTimeout(function () {
+
+        for (let i = 1; i < siteCache.dynamicIds.length; i++) {
+            let urlString = siteCache.dynamicIds[i];
+
+            if (urlString !== null) {
+                console.log(`refreshing listener for ${urlString}`)
+                //first we remove the listener
+                chrome.webNavigation.onCompleted.removeListener(siteCache[urlString]);
+                //then we add it with the same function it should be the same? 
+                var newListener = function (details) {
+                    triggerOnCompleted(details);
+                };
+                chrome.webNavigation.onCompleted.addListener(newListener, { url: [{ hostContains: urlString }] });
+                //then we need to update our site settings in our cache to make sure the listener function matches
+                siteCache[urlString] = newListener;
+            }
+        };
+        console.log('url listeners have been refreshed. refreshing storage.')
+        //and finally after all of those listeners have been replaced, we update our sync storage
+        chrome.storage.sync.set({ syncCache: siteCache });
+    }, 20);
+}
