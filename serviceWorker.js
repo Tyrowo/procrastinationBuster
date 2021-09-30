@@ -144,29 +144,38 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 //splitting the onCompleted listener logic into its own function to create new listeners every time a user
 //adds a new site to their restricted websites
 //you're allowed to visit website ony once, then this triggers and activates the ruleset
-function triggerOnCompleted(details) {
+async function triggerOnCompleted(details) {
     //need to make sure that this only triggers once per navigation
     console.log(details);
     if (details.frameId !== 0) return;
 
+    //we need to get our current alarms, get all returns them as an array
+    let prevAlarms = await chrome.alarms.getAll();
+
     //now we should refresh our cache to make sure that our time settings are correct before adding alarms
     refreshCache();
     setTimeout(function () {
+        //console.log('prevalarms', prevAlarms, prevAlarms.length); to check alarm detection
 
-        //need to clear notifications left over from the last cycle of banning
-        notifyClear('Access Restored');
-        //to create a notification we create a new member of our class and pass that into the notify function
-        let siteVisited = new NotificationClass('You have accessed a restricted site', `You will be allowed ${siteCache.closeTabs.delayInMinutes} minutes until you are kicked off of all restricted sites.`);
-        //we notify the user and initiate a warning badge
-        notifyUser(siteVisited);
-        warningBadge(siteCache.closeTabs.delayInMinutes);
-        console.log('warning initiated, setting alarms');
-        //here we've got to add two timers:
-        //timer to boot you out of the reddit tab after x time
-        chrome.alarms.create(name = 'too much time on tab', siteCache.closeTabs);
-        //then we need another alarm to turn the ruleset back off
-        chrome.alarms.create(name = 'active ruleset timer', siteCache.deactivate);
-        console.log('both alarms successfully set');
+        //first we make sure there are no previous alarms set, so we don't double up on this function
+        if (prevAlarms.length === 0) {
+
+            //need to clear notifications left over from the last cycle of banning
+            notifyClear('Access Restored');
+            //to create a notification we create a new member of our class and pass that into the notify function
+            let siteVisited = new NotificationClass('You have accessed a restricted site', `You will be allowed ${siteCache.closeTabs.delayInMinutes} minutes until you are kicked off of all restricted sites.`);
+            //we notify the user and initiate a warning badge
+            notifyUser(siteVisited);
+            warningBadge(siteCache.closeTabs.delayInMinutes);
+            console.log('warning initiated, setting alarms');
+            //here we've got to add two timers:
+            //timer to boot you out of the reddit tab after x time
+            chrome.alarms.create(name = 'too much time on tab', siteCache.closeTabs);
+            //then we need another alarm to turn the ruleset back off
+            chrome.alarms.create(name = 'active ruleset timer', siteCache.deactivate);
+            console.log('both alarms successfully set');
+
+        }
     }, 10);
 };
 
