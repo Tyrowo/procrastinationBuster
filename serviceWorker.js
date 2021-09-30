@@ -412,12 +412,11 @@ function countDown(time) {
     } else if (curTime > 3600) {
         let tempTime = Math.floor(curTime / 3600);
         badgeText = `>${tempTime}h`;
-    } else if (curTime > 90) {
+    } else if (curTime > 120) {
         let tempTime = Math.floor(curTime / 60);
-        badgeText = `${tempTime}m`
+        badgeText = `>${tempTime}m`
     } else if (curTime <= 0) {
         chrome.action.setBadgeText({ text: '' });
-        clearInterval(interval);
     } else {
         badgeText = `${curTime}s`;
     }
@@ -426,7 +425,7 @@ function countDown(time) {
 
     //even though i have a named function going into intervals,
     //apparently chrome extension likes them to be wrapped in a function
-    let interval = setInterval(function () { refreshBadge() }, 1000);
+    interval = setInterval(function () { refreshBadge() }, 1000);
 
     //including this inside of the countdown function so that it has access
     //to the variables curtime and interval to shut off the interval
@@ -440,12 +439,12 @@ function countDown(time) {
         } else if (curTime > 3600) {
             let tempTime = Math.floor(curTime / 3600);
             badgeText = `>${tempTime}h`;
-        } else if (curTime > 90) {
+        } else if (curTime > 120) {
             let tempTime = Math.floor(curTime / 60);
-            badgeText = `${tempTime}m`
+            badgeText = `>${tempTime}m`
         } else if (curTime <= 0) {
             chrome.action.setBadgeText({ text: '' });
-            clearInterval(interval);
+            clearInterval(interval)
         } else {
             badgeText = `${curTime}s`;
         }
