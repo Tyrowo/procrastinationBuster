@@ -110,7 +110,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                 `Time allowed has expired. Access to restricted site is blocked and all tabs are closed. You will be allowed back on in ${remainingTime} minutes.`);
             notifyUser(timeOver);
             console.log('activating blocker');
-            activateBadge();
+            activateBadge(remainingTime);
             //we can use the storaged ruleset in our object to enable and disable
             console.log(siteCache['curRuleset']);
             chrome.declarativeNetRequest.updateDynamicRules({ addRules: siteCache['curRuleset'] }); //update dynamic rules takes an object with addRules &/or removeRuleIds
@@ -159,7 +159,7 @@ function triggerOnCompleted(details) {
         let siteVisited = new NotificationClass('You have accessed a restricted site', `You will be allowed ${siteCache.closeTabs.delayInMinutes} minutes until you are kicked off of all restricted sites.`);
         //we notify the user and initiate a warning badge
         notifyUser(siteVisited);
-        warningBadge();
+        warningBadge(siteCache.closeTabs.delayInMinutes);
         console.log('warning initiated, setting alarms');
         //here we've got to add two timers:
         //timer to boot you out of the reddit tab after x time
@@ -171,17 +171,19 @@ function triggerOnCompleted(details) {
 };
 
 //and here are two functions to turn on or off the badge
-function activateBadge() {
+function activateBadge(time) {
+    let initTime = time * 60;
     chrome.action.setBadgeBackgroundColor({ color: '#F00' }); //can add callback function if you want to cascade
-    chrome.action.setBadgeText({ text: 'active' });
+    countDown(initTime);
 }
 function deactivateBadge() {
     chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
 }
 //and a function to start the badge saying that your time on the site is counting down
-function warningBadge() {
+function warningBadge(time) {
+    let initTime = time * 60;
     chrome.action.setBadgeBackgroundColor({ color: '#FF6700' });
-    chrome.action.setBadgeText({ text: 'allow' });
+    countDown(initTime);
 }
 
 
@@ -349,12 +351,12 @@ chrome.idle.onStateChanged.addListener(function (idleState) {
     //whenever the user goes active I want them to refresh their listeners, and then periodicall refresh
     if (idleState === 'active') {
         refreshListeners(); //initially refresh
-        setInterval(function () { refreshListeners() }, 300000); //30000 = 1000*60*5, continue to refresh every 5 minutes
+        let refreshInt = setInterval(function () { refreshListeners() }, 300000); //30000 = 1000*60*5, continue to refresh every 5 minutes
     };
 
     //just to be safe I want to clear this interval when we go inactive so we don't have a million.
     if (idleState === 'inactive') {
-        clearInterval(refreshListeners());
+        clearInterval(refreshInt);
     }
 });
 
@@ -385,4 +387,62 @@ function refreshListeners() {
         //and finally after all of those listeners have been replaced, we update our sync storage
         chrome.storage.sync.set({ syncCache: siteCache });
     }, 20);
+}
+
+//113, 162 are our calls to the badge functions
+function countDown(time) {
+    //received time should be our time in seconds because we multiply by 60 in our badges
+    let curTime = time;
+    let badgeText;
+
+    //before initiating our interval we do an assessment of how much time is left
+    //so that we can initiate the badge.
+    if (curTime > 86400) {
+        let tempTime = Math.floor(curTime / 86400);
+        badgeText = `>${tempTime}d`
+    } else if (curTime > 3600) {
+        let tempTime = Math.floor(curTime / 3600);
+        badgeText = `>${tempTime}h`;
+    } else if (curTime > 90) {
+        let tempTime = Math.floor(curTime / 60);
+        badgeText = `${tempTime}m`
+    } else if (curTime <= 0) {
+        chrome.action.setBadgeText({ text: '' });
+        clearInterval(interval);
+    } else {
+        badgeText = `${curTime}s`;
+    }
+
+    chrome.action.setBadgeText({ text: badgeText });
+
+    //even though i have a named function going into intervals,
+    //apparently chrome extension likes them to be wrapped in a function
+    let interval = setInterval(function () { refreshBadge() }, 1000);
+
+    //including this inside of the countdown function so that it has access
+    //to the variables curtime and interval to shut off the interval
+    function refreshBadge() {
+        curTime--; //first we decrement the time given bc we've waited a sec
+
+        //gotta assess how much time is remaining for our user's period
+        if (curTime > 86400) {
+            let tempTime = Math.floor(curTime / 86400);
+            badgeText = `>${tempTime}d`
+        } else if (curTime > 3600) {
+            let tempTime = Math.floor(curTime / 3600);
+            badgeText = `>${tempTime}h`;
+        } else if (curTime > 90) {
+            let tempTime = Math.floor(curTime / 60);
+            badgeText = `${tempTime}m`
+        } else if (curTime <= 0) {
+            chrome.action.setBadgeText({ text: '' });
+            clearInterval(interval);
+        } else {
+            badgeText = `${curTime}s`;
+        }
+
+        //then update the badge with how much time they have left if there's time remaining
+        if (curTime > 0) chrome.action.setBadgeText({ text: badgeText });
+        //console.log('counting down time, ', curTime);
+    }
 }
