@@ -7,6 +7,8 @@ let siteCache = {
     closeTabs: { delayInMinutes: 60 }, //default to 60
     deactivate: { delayInMinutes: 1440 } //default to 1440, i.e. 1 day. this val must be greater than CloseTabs
 };
+let activity = false;
+
 
 chrome.runtime.onInstalled.addListener(
     function () {
@@ -186,6 +188,10 @@ function activateBadge(time) {
     countDown(initTime);
 }
 function deactivateBadge() {
+    //when it's time to deactivate the badges let's clear out all our intervals to make sure we don't leave any
+    intervalStorage.clearAll();
+    //with all our intervals cleared out we should be able to start again without issues
+    console.log('cleared all intervals')
     chrome.action.setBadgeText({ text: '' }); //this line successfully turns the badge off
 }
 //and a function to start the badge saying that your time on the site is counting down
@@ -359,8 +365,8 @@ chrome.idle.onStateChanged.addListener(function (idleState) {
     //don't want a notification to the user, it's obnoxious, but a console log will let us know when it idles
     //whenever the user goes active I want them to refresh their listeners, and then periodicall refresh
     if (idleState === 'active') {
-        refreshListeners(); //initially refresh
-        let refreshInt = setInterval(function () { refreshListeners() }, 300000); //30000 = 1000*60*5, continue to refresh every 5 minutes
+        checkActivity(); //this will refresh our listeners and then do a check in 5 mins to refresh them again
+        //hopefully only putting one mark at a time so we don't get a million overlapping
     };
 
     //just to be safe I want to clear this interval when we go inactive so we don't have a million.
@@ -372,7 +378,7 @@ chrome.idle.onStateChanged.addListener(function (idleState) {
 //moving the logic of refreshing the listeners into its own function so that we can create a more resilient
 //set interval function above
 function refreshListeners() {
-
+    console.log('refreshing listeners');
     refreshCache();
     setTimeout(function () {
 
@@ -399,6 +405,22 @@ function refreshListeners() {
 }
 
 //113, 162 are our calls to the badge functions
+//ok so to solve this counting down issue we're gonna store some intervals in a storage object
+let intervalStorage = {
+    intervals: new Set(),
+    clearAll() {
+        console.log('clearing intervals. current storage:', this.intervals);
+        for (let ids of this.intervals) {
+            clearInterval(ids);
+        };
+        this.intervals.clear();
+        console.log('intervals should be removed. current set is clear: ', this.intervals)
+        return;
+    }
+};
+//the real issue going on is when you do too many clicks during your navigation at once, you add like 4 listeners from the oncompleted
+//and theyre all ticking down at once? I think that's what's going on. But I think if we delete all the listeners from this storage
+//it should fix our issues. Although it looks a little weird that we have 4 listeners at once sometimes.
 function countDown(time) {
     //received time should be our time in seconds because we multiply by 60 in our badges
     let curTime = time;
@@ -415,8 +437,6 @@ function countDown(time) {
     } else if (curTime > 120) {
         let tempTime = Math.floor(curTime / 60);
         badgeText = `>${tempTime}m`
-    } else if (curTime <= 0) {
-        chrome.action.setBadgeText({ text: '' });
     } else {
         badgeText = `${curTime}s`;
     }
@@ -425,12 +445,15 @@ function countDown(time) {
 
     //even though i have a named function going into intervals,
     //apparently chrome extension likes them to be wrapped in a function
-    interval = setInterval(function () { refreshBadge() }, 1000);
-
+    //now that I have this cute interval storage we'll use that
+    let interval = setInterval(function () { refreshBadge() }, 1000);
+    intervalStorage.intervals.add(interval);
+    console.log('created new interval', intervalStorage.intervals);
     //including this inside of the countdown function so that it has access
     //to the variables curtime and interval to shut off the interval
     function refreshBadge() {
         curTime--; //first we decrement the time given bc we've waited a sec
+        console.log('leak testing', interval, 'interval ', curTime)
 
         //gotta assess how much time is remaining for our user's period
         if (curTime > 86400) {
@@ -442,15 +465,37 @@ function countDown(time) {
         } else if (curTime > 120) {
             let tempTime = Math.floor(curTime / 60);
             badgeText = `>${tempTime}m`
-        } else if (curTime <= 0) {
+        } else if (curTime === 2) {
             chrome.action.setBadgeText({ text: '' });
-            clearInterval(interval)
+            intervalStorage.clearAll();
+        } else if (curTime === 1) {
+            chrome.action.setBadgeText({ text: '' });
+            intervalStorage.clearAll();
+        } else if (curTime <= 0) {
+            intervalStorage.clearAll();
         } else {
             badgeText = `${curTime}s`;
         }
 
         //then update the badge with how much time they have left if there's time remaining
-        if (curTime > 0) chrome.action.setBadgeText({ text: badgeText });
+        if (curTime > 2) chrome.action.setBadgeText({ text: badgeText });
         //console.log('counting down time, ', curTime);
     }
+}
+
+//this function is to refresh our activity and refresh our listeners every 5 minutes, without
+//allowing the function to be repeated multiple times by multiple periods of inactivity and activity by the user
+function checkActivity() {
+    refreshListeners();
+    console.log('checking activity. activity status is: ', activity);
+    if (activity === false) {
+        activity = true;
+        setTimeout(function () {
+            console.log('end of 5 min timer. setting activity to false to refresh timer');
+            activity = false;
+            checkActivity();
+        }, 300000);
+        console.log('activity set to: ', activity, '. timeout to check activity in 5 mins set.');
+    }
+
 }
