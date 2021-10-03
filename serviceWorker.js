@@ -7,7 +7,8 @@ let siteCache = {
     closeTabs: { delayInMinutes: 60 }, //default to 60
     deactivate: { delayInMinutes: 1440 } //default to 1440, i.e. 1 day. this val must be greater than CloseTabs
 };
-let activity = false;
+let activity = false; //var to indicate if our timeout has been set from a change in activity
+let visited = false; //var to indicate if we've visited any trigger websites during our warning period
 
 
 chrome.runtime.onInstalled.addListener(
@@ -34,6 +35,8 @@ chrome.runtime.onInstalled.addListener(
 
 //this is our function for when a user adds a site to their banned list
 async function userInputSite(urlString) {
+    visited = false;//when someone adds a site let's refresh the visited indicator
+
     //should refresh the site cache before doing anything
     console.log('siteCache before refresh', siteCache);
     refreshCache()
@@ -127,6 +130,9 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                         chrome.tabs.remove(map); //close the tabs found
                         console.log('tabs from map successfully closed');
                     }));
+
+            //after successfully clearing out all our tabs, then we set our visited status to false 
+            visited = false; //this gets us ready to visit another restricted website whenever our blocker comes down
         };
         //the second alarm deactivates the blocker
         if (alarm.name === 'active ruleset timer') {
@@ -150,6 +156,11 @@ async function triggerOnCompleted(details) {
     //need to make sure that this only triggers once per navigation
     console.log(details);
     if (details.frameId !== 0) return;
+
+    //check if we've already visited once before proceeding
+    if (visited === true) return;
+    //then if not we set it to true
+    visited = true;
 
     //we need to get our current alarms, get all returns them as an array
     let prevAlarms = await chrome.alarms.getAll();
@@ -453,7 +464,7 @@ function countDown(time) {
     //to the variables curtime and interval to shut off the interval
     function refreshBadge() {
         curTime--; //first we decrement the time given bc we've waited a sec
-        console.log('leak testing', interval, 'interval ', curTime)
+        //console.log('leak testing', interval, 'interval ', curTime)
 
         //gotta assess how much time is remaining for our user's period
         if (curTime > 86400) {
